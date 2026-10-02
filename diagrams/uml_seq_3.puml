@@ -1,0 +1,28 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+actor "Риск-аналитик" as RA
+boundary "ЭкранМоделей" as UI
+control "СервисОбучения" as T
+entity "ОбучающаяВыборка" as DS
+entity "Модель" as M
+actor "Руководитель отдела" as HD
+RA -> UI : задать период данных и алгоритм
+UI -> T : обучить(период, алгоритм)
+T -> DS : сформировать(период)
+DS --> T : выборка (train / test)
+T -> T : обучить и подобрать гиперпараметры
+T -> T : рассчитать ROC AUC, Gini, KS
+T -> M : зарегистрировать(версия, метрики, статус = "Кандидат")
+T --> UI : отчёт о валидации
+RA -> UI : сравнить с действующей версией
+RA -> UI : отправить на утверждение
+UI -> HD : запрос на утверждение
+HD --> UI : утверждено
+UI -> M : опубликовать(версия)
+M -> M : статус = "Опубликована", предыдущая = "Архив"
+UI --> RA : модель опубликована
+@enduml

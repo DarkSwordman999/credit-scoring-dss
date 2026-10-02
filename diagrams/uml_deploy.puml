@@ -1,0 +1,37 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+node "АРМ сотрудника\n<<device>>" as pc {
+  artifact "Веб-браузер" as br
+}
+node "Сервер приложений\n<<Linux, Docker>>" as app {
+  component "web-frontend\n(nginx + React)" as fe
+  component "backend-api\n(FastAPI)" as be
+  component "scoring-service" as sc
+  component "integration-gateway" as gw
+}
+node "Сервер обучения моделей\n<<Linux>>" as mls {
+  component "training-service" as tr
+  component "MLflow\n(реестр моделей)" as mlf
+}
+node "Сервер БД\n<<Linux>>" as dbs {
+  database "PostgreSQL\n(credit_db)" as db
+}
+node "Бюро кредитных историй" as bki
+node "АБС Банка" as abs
+node "Контроллер домена\n(LDAP)" as ldap
+br --> fe : HTTPS
+fe --> be : REST
+be --> sc : REST
+be --> gw
+gw --> bki : HTTPS (TLS)
+gw --> abs : API
+be --> db : SQL
+sc --> mlf : загрузка модели
+tr --> mlf : регистрация версии
+tr --> db : выборка данных
+be --> ldap : LDAP
+@enduml

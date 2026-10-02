@@ -1,0 +1,25 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+left to right direction
+skinparam rectangle {
+ BorderColor black
+}
+rectangle ":КонтроллерЗаявок" as C
+rectangle ":СервисСкоринга" as S
+rectangle ":СтопФактор" as SF
+rectangle ":ПостроительПризнаков" as FB
+rectangle ":Модель" as M
+rectangle ":КалькуляторПДН" as P
+rectangle ":РезультатСкоринга" as R
+C -- S : "1: оценить(заявка) →\n10: ← результат"
+S -- SF : "2: проверить(досье) →"
+S -- FB : "3: построить(досье) →"
+S -- M : "4: predict(признаки) →\n5: explain(признаки) →"
+S -- P : "6: рассчитатьПДН() →"
+S -- R : "8: создать(...) →"
+S -- S : "7: определитьКлассРиска()\n9: setСтатус()"
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+package "ui (граничные классы)" as ui
+package "application (управляющие классы)" as app
+package "domain (сущности)" as dom
+package "ml (модели и обучение)" as ml
+package "integration (адаптеры БКИ, АБС)" as integ
+package "reporting (отчёты)" as rep
+ui ..> app
+app ..> dom
+app ..> ml
+app ..> integ
+app ..> rep
+ml ..> dom
+rep ..> dom
+integ ..> dom
+@enduml

@@ -1,0 +1,34 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+actor "Кредитный специалист" as KS
+boundary "ФормаЗаявки" as UI
+control "КонтроллерЗаявок" as C
+entity "Клиент" as CL
+entity "Заявка" as AP
+entity "Согласие" as CS
+control "АдаптерБКИ" as BA
+participant "БКИ" as BKI
+KS -> UI : ввести анкету и данные кредита
+KS -> UI : отметить согласия, прикрепить документы
+UI -> C : создатьЗаявку(анкета)
+C -> C : проверитьДанные()
+alt данные некорректны
+  C --> UI : ошибки проверки
+  UI --> KS : показать ошибки
+else данные корректны
+  C -> CL : найтиИлиСоздать(паспорт)
+  C -> AP : создать(клиент, продукт, сумма, срок)
+  C -> CS : сохранить(согласия)
+  C -> AP : setСтатус("Зарегистрирована")
+  C -> BA : запроситьОтчёт(заявка)
+  BA -> BKI : запрос кредитного отчёта
+  BKI --> BA : кредитный отчёт
+  BA --> C : отчёт сохранён
+  C --> UI : номер заявки
+  UI --> KS : заявка зарегистрирована
+end
+@enduml

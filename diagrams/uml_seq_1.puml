@@ -1,0 +1,33 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+control "КонтроллерЗаявок" as C
+control "СервисСкоринга" as S
+entity "СтопФактор" as SF
+control "ПостроительПризнаков" as FB
+entity "Модель" as M
+control "КалькуляторПДН" as P
+entity "РезультатСкоринга" as R
+entity "Заявка" as AP
+C -> S : оценить(заявка)
+S -> SF : проверить(досье)
+alt сработал стоп-фактор
+  S -> R : создать(рекомендация = "Отказ", кодСтопФактора)
+else стоп-факторов нет
+  S -> FB : построить(досье)
+  FB --> S : вектор признаков
+  S -> M : predict(признаки)
+  M --> S : PD
+  S -> M : explain(признаки)
+  M --> S : вклад факторов (SHAP)
+  S -> P : рассчитатьПДН(досье, сумма, срок)
+  P --> S : ПДН
+  S -> S : определитьКлассРиска(PD)
+  S -> R : создать(PD, класс, ПДН, факторы, рекомендация, условия)
+end
+S -> AP : setСтатус("На рассмотрении")
+S --> C : результат скоринга
+@enduml
