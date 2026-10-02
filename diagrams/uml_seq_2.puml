@@ -1,0 +1,32 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+actor "Андеррайтер" as UW
+boundary "КарточкаЗаявки" as UI
+control "КонтроллерРешений" as C
+entity "Заявка" as AP
+entity "РезультатСкоринга" as R
+entity "Решение" as D
+entity "Сотрудник" as E
+control "Уведомитель" as N
+UW -> UI : открыть заявку
+UI -> C : получитьДосье(заявка)
+C -> R : получить(заявка)
+C --> UI : досье, оценка, факторы
+UW -> UI : выбрать решение, условия, комментарий
+UI -> C : принятьРешение(заявка, решение)
+C -> C : проверитьКомментарий()
+C -> E : лимитПолномочий()
+alt сумма в пределах лимита
+  C -> D : создать(итог, условия)
+  C -> AP : setСтатус("Одобрена" / "Отклонена")
+  C -> N : уведомитьКлиента(заявка)
+else сумма превышает лимит
+  C -> D : создать(рекомендация андеррайтера)
+  C -> AP : setСтатус("На кредитном комитете")
+end
+C --> UI : решение сохранено
+@enduml
