@@ -3,7 +3,7 @@ import { Alert, App, Button, Card, Col, Descriptions, Divider, Empty, Form, Inpu
   Progress, Radio, Row, Select, Skeleton, Space, Table, Tabs, Tag, Timeline, Tooltip, Typography, Upload } from "antd";
 import { ArrowDownOutlined, ArrowUpOutlined, DownloadOutlined, EditOutlined, ReloadOutlined, UploadOutlined,
   WarningOutlined } from "@ant-design/icons";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, download } from "../api";
 import { useAuth } from "../auth";
 import { CLASS_COLORS, d, dt, money, num, OUTCOMES, pct, REC_COLORS, STATUS_COLORS } from "../format";
@@ -111,7 +111,7 @@ export default function ApplicationCard() {
         <div>
           <Card title="Клиент и кредит" size="small" style={{ marginBottom: 16 }}>
             <Descriptions column={2} size="small">
-              <Descriptions.Item label="Клиент" span={2}><b>{c.client.full_name}</b></Descriptions.Item>
+              <Descriptions.Item label="Клиент" span={2}><Link to={`/clients/${c.client.id}`}><b>{c.client.full_name}</b></Link></Descriptions.Item>
               <Descriptions.Item label="Дата рождения">{d(c.client.birth_date)}</Descriptions.Item>
               <Descriptions.Item label="Паспорт">{c.client.passport_series} {c.client.passport_number}</Descriptions.Item>
               <Descriptions.Item label="Гражданство">{c.client.citizenship}</Descriptions.Item>

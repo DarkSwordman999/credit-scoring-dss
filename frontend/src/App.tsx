@@ -3,6 +3,7 @@ import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Avatar, Button, Dropdown, Grid, Layout, Menu, Spin, Typography } from "antd";
 import {
   AuditOutlined,
+  BankOutlined,
   BarChartOutlined,
   DashboardOutlined,
   DatabaseOutlined,
@@ -10,6 +11,8 @@ import {
   FileTextOutlined,
   LogoutOutlined,
   SettingOutlined,
+  TableOutlined,
+  TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "./auth";
@@ -24,6 +27,10 @@ import Reports from "./pages/Reports";
 import Nsi from "./pages/Nsi";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
+import Clients from "./pages/Clients";
+import ClientCard from "./pages/ClientCard";
+import Loans from "./pages/Loans";
+import DataTables from "./pages/DataTables";
 
 const { Sider, Header, Content } = Layout;
 
@@ -39,9 +46,12 @@ const STAFF = ["credit_officer", "underwriter", "head", "risk_analyst"];
 const ITEMS: Item[] = [
   { key: "/", label: "Главная", icon: <DashboardOutlined />, roles: [] },
   { key: "/applications", label: "Заявки", icon: <FileTextOutlined />, roles: STAFF },
+  { key: "/clients", label: "Заёмщики", icon: <TeamOutlined />, roles: STAFF },
+  { key: "/loans", label: "Кредитный портфель", icon: <BankOutlined />, roles: STAFF },
   { key: "/models", label: "Методика оценки", icon: <ExperimentOutlined />, roles: ["risk_analyst", "head", "underwriter"] },
   { key: "/reports", label: "Отчёты", icon: <BarChartOutlined />, roles: ["head", "risk_analyst"] },
   { key: "/nsi", label: "Справочники", icon: <DatabaseOutlined />, roles: [] },
+  { key: "/data", label: "Таблицы БД", icon: <TableOutlined />, roles: ["head", "risk_analyst", "admin"] },
   { key: "/admin", label: "Администрирование", icon: <SettingOutlined />, roles: ["admin"] },
   { key: "/audit", label: "Журнал аудита", icon: <AuditOutlined />, roles: ["head"] },
 ];
@@ -114,6 +124,10 @@ export default function App() {
             <Route path="/applications/new" element={<ApplicationForm />} />
             <Route path="/applications/:id/edit" element={<ApplicationForm />} />
             <Route path="/applications/:id" element={<ApplicationCard />} />
+            <Route path="/clients" element={<Clients />} />
+            <Route path="/clients/:id" element={<ClientCard />} />
+            <Route path="/loans" element={<Loans />} />
+            <Route path="/data" element={<DataTables />} />
             <Route path="/models" element={<Models />} />
             <Route path="/models/:id" element={<ModelCard />} />
             <Route path="/reports" element={<Reports />} />
