@@ -1,10 +1,30 @@
-import { Alert, Button, Card, Col, Empty, List, Row, Skeleton, Statistic, Tag, Typography } from "antd";
+import { Alert, Button, Card, Col, Empty, List, Row, Skeleton, Statistic, Table, Tag, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../auth";
+import { appColumns, type AppRow } from "../appColumns";
 import { dt, money, num, STATUS_COLORS } from "../format";
-import { useLoad } from "../hooks";
+import { useDictionaries, useLoad } from "../hooks";
+
+const STAFF = ["credit_officer", "underwriter", "head", "risk_analyst"];
+
+/** Последние принятые решения — видно, кому и почему одобрили или отказали. */
+function RecentDecisions() {
+  const dict = useDictionaries();
+  const { data, loading } = useLoad(() =>
+    api.get<{ items: AppRow[] }>("/api/applications", { status: ["approved", "rejected", "issued"], size: 10 }),
+  );
+  const cols = appColumns(dict?.recommendations).filter((c: any) =>
+    ["number", "client", "amount", "risk_class", "decision", "reason", "status"].includes(c.dataIndex),
+  );
+  return (
+    <Card title="Последние решения" style={{ marginTop: 16 }} extra={<Link to="/applications">Все заявки</Link>}>
+      <Table<AppRow> rowKey="id" size="small" loading={loading} dataSource={data?.items || []} pagination={false}
+        scroll={{ x: 1000 }} columns={cols} />
+    </Card>
+  );
+}
 
 interface QueueItem {
   id: number;
@@ -54,6 +74,17 @@ export default function Dashboard() {
           </Button>
         )}
       </div>
+      {user?.role === "admin" && (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message="Администратор не работает с заявками и персональными данными клиентов (разделение полномочий)."
+          description={<>Заявки, заёмщиков и кредитный портфель видят сотрудники кредитного отдела. Чтобы посмотреть
+            всё сразу, войдите как руководитель кредитного отдела (логин <code>head</code>). Структуру и содержимое
+            базы данных без персональных данных можно посмотреть в разделе <Link to="/data">«Таблицы БД»</Link>.</>}
+        />
+      )}
       {data.alerts.map((a) => (
         <Alert key={a} type="warning" showIcon message={a} style={{ marginBottom: 12 }} />
       ))}
@@ -78,6 +109,7 @@ export default function Dashboard() {
             <Statistic
               title="Уровень одобрения за 30 дней"
               value={data.approval_rate_30d ?? "—"}
+              decimalSeparator=","
               suffix={data.approval_rate_30d !== null ? "%" : undefined}
             />
           </Card>
@@ -139,7 +171,8 @@ export default function Dashboard() {
             </Card>
           </Col>
         ))}
-      </Row>
+            </Row>
+      {can(...STAFF) && <RecentDecisions />}
     </>
   );
 }
