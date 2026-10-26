@@ -11,7 +11,7 @@ from .. import appsettings, audit
 from ..db import get_db
 from ..errors import Conflict, DomainError, NotFound
 from ..models import ROLES, AuditLog, IntegrationLog, User
-from ..security import hash_password, require
+from ..security import hash_password, require, verify_password
 from ..services import backup, xlsx
 from .auth import user_out
 
@@ -159,3 +159,27 @@ def download_backup(name: str, user: User = Depends(ADMIN), db: Session = Depend
     audit.log(db, user, "Скачана резервная копия", "backup", name)
     db.commit()
     return FileResponse(p, filename=p.name, media_type="application/octet-stream")
+
+
+_checked: dict[str, bool] = {}
+
+
+def _is_default(password: str, stored: str) -> bool:
+    """Проверка дорогая (PBKDF2) — результат запоминается по хэшу пароля."""
+    if stored not in _checked:
+        _checked[stored] = verify_password(password, stored)
+    return _checked[stored]
+
+
+@router.get("/demo-users", summary="Демо-пользователи с неизменёнными паролями (сведения администратору)")
+def demo_users(user: User = Depends(ADMIN), db: Session = Depends(get_db)):
+    from ..demo import DEMO_PASSWORD, STAFF
+    out = []
+    for login, _name, role, limit in STAFF:
+        u = db.query(User).filter_by(login=login, active=True).first()
+        # пароль показываем, только пока его не сменили — значит, это демонстрационная база
+        if u is not None and _is_default(DEMO_PASSWORD, u.password_hash):
+            out.append({"login": u.login, "full_name": u.full_name, "role": u.role,
+                        "role_name": ROLES.get(u.role, u.role), "password": DEMO_PASSWORD,
+                        "limit_amount": float(u.limit_amount) if u.limit_amount is not None else None})
+    return out

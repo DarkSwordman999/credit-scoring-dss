@@ -193,8 +193,9 @@ def test_registry_portfolio_and_tables(server, page):
     page.wait_for_selector("th:has-text('contract_number')")
 
 
-def test_login_demo_hint(server, page):
-    """На странице входа в демо-режиме — список ролей; щелчок по строке выполняет вход."""
-    page.goto(server + "/")
-    page.click("text=Риск-аналитик")
-    page.wait_for_selector("text=Здравствуйте")
+def test_admin_demo_users_login_as(server, page):
+    """Администратор видит демо-пользователей и входит под ролью руководителя."""
+    login(page, server, "admin", "admin")
+    page.wait_for_selector("text=пользователи демонстрационной базы")
+    page.locator("tr:has-text('Руководитель') >> text=Войти под этой ролью").click()
+    page.wait_for_selector("text=Последние решения")

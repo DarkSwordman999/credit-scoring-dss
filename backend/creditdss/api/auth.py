@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from .. import appsettings, audit
+from .. import audit
 from ..db import get_db
 from ..db import session as db_session
 from ..models import ROLES, User
@@ -43,34 +43,6 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     audit.log(db, user, "Вход в систему")
     db.commit()
     return TokenOut(access_token=make_token(user), user=user_out(user))
-
-
-_checked: dict[str, bool] = {}
-
-
-def _is_default(password: str, stored: str) -> bool:
-    """Проверка дорогая (PBKDF2), а страница входа открыта всем — результат запоминается по хэшу пароля."""
-    if stored not in _checked:
-        _checked[stored] = verify_password(password, stored)
-    return _checked[stored]
-
-
-@router.get("/demo-users", summary="Демо-пользователи для страницы входа (если включено в параметрах)")
-def demo_users(db: Session = Depends(get_db)):
-    if not appsettings.get(db, "demo_hint"):
-        return []
-    from ..demo import DEMO_PASSWORD, STAFF
-    logins = [s[0] for s in STAFF] + ["admin"]
-    users = {u.login: u for u in db.query(User).filter(User.login.in_(logins), User.active.is_(True)).all()}
-    out = []
-    for login in logins:
-        u = users.get(login)
-        pwd = "admin" if login == "admin" else DEMO_PASSWORD
-        # пароль показываем, только пока его не сменили
-        if u is not None and _is_default(pwd, u.password_hash):
-            out.append({"login": u.login, "full_name": u.full_name, "role_name": ROLES.get(u.role, u.role),
-                        "password": pwd})
-    return out
 
 
 @router.get("/me", response_model=UserOut)

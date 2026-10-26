@@ -1,7 +1,5 @@
-"""Реестр заёмщиков, кредитный портфель, причины решений в списке заявок, просмотр таблиц БД, демо-подсказка входа."""
+"""Реестр заёмщиков, кредитный портфель, причины решений в списке заявок, просмотр таблиц БД, демо-пользователи для администратора."""
 import pytest
-
-from creditdss import appsettings
 
 pytestmark = pytest.mark.demo
 
@@ -86,13 +84,10 @@ def test_data_tables_masking_and_hidden_columns(client, login):
     assert client.get("/api/data/tables", headers=login("officer")).status_code == 403
 
 
-def test_demo_users_hint(client, session):
-    appsettings.set_(session, "demo_hint", False)
-    session.commit()
-    assert client.get("/api/auth/demo-users").json() == []
-    appsettings.set_(session, "demo_hint", True)
-    session.commit()
-    logins = {u["login"]: u for u in client.get("/api/auth/demo-users").json()}
-    # в тестах пароли officer, underwriter, head, analyst заменены — их подсказка не показывается
-    assert set(logins) == {"admin", "officer2", "underwriter2"}
-    assert logins["admin"]["password"] == "admin" and logins["officer2"]["password"] == "demo"
+def test_demo_users_for_admin_only(client, login):
+    assert client.get("/api/admin/demo-users").status_code == 401
+    assert client.get("/api/admin/demo-users", headers=login("head")).status_code == 403
+    users = {u["login"]: u for u in client.get("/api/admin/demo-users", headers=login("admin")).json()}
+    # в тестах пароли officer, underwriter, head, analyst заменены — показываются только неизменённые
+    assert set(users) == {"officer2", "underwriter2"}
+    assert users["officer2"]["password"] == "demo" and users["underwriter2"]["limit_amount"] == 500_000

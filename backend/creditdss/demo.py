@@ -12,7 +12,7 @@ from datetime import date, datetime, time, timedelta
 
 from sqlalchemy.orm import Session
 
-from . import appsettings, audit
+from . import audit
 from .bootstrap import ensure_base
 from .models import (AbsData, Application, BkiRequest, Client, Consent, CreditReport, Decision, Employment, Loan,
                      Notification, Product, ScoringModel, ScoringResult, StopListEntry, User, Verification)
@@ -420,7 +420,6 @@ def generate(db: Session, months: int = 30, per_day: float = 8.0, seed: int = 20
         while m <= 0:
             y, m = y - 1, m + 12
         methodology.monitor(db, f"{y}-{m:02d}")
-    appsettings.set_(db, "demo_hint", True)
     audit.log(db, None, "Загружены демонстрационные данные", "system", "demo")
     db.commit()
     return {"applications": db.query(Application).count(), "loans": db.query(Loan).count(),

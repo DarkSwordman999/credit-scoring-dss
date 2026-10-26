@@ -9,6 +9,53 @@ import { useDictionaries, useLoad } from "../hooks";
 
 const STAFF = ["credit_officer", "underwriter", "head", "risk_analyst"];
 
+interface DemoUser {
+  login: string;
+  full_name: string;
+  role_name: string;
+  password: string;
+  limit_amount: number | null;
+}
+
+/** Сведения администратору: демо-пользователи (пока их пароли не сменены) и вход под любой ролью. */
+function DemoUsers() {
+  const { login } = useAuth();
+  const nav = useNavigate();
+  const { data } = useLoad(() => api.get<DemoUser[]>("/api/admin/demo-users"));
+  if (!data || data.length === 0) return null;
+  return (
+    <Card title="Сведения администратора: пользователи демонстрационной базы" style={{ marginBottom: 16 }}>
+      <Typography.Paragraph type="secondary">
+        Администратор не работает с заявками и персональными данными клиентов — это разделение полномочий. Заявки,
+        заёмщиков и кредитный портфель видят сотрудники кредитного отдела; больше всего — руководитель
+        (<code>head</code>). Список виден, пока пароли демо-пользователей не сменены.
+      </Typography.Paragraph>
+      <Table<DemoUser>
+        rowKey="login"
+        size="small"
+        pagination={false}
+        dataSource={data}
+        columns={[
+          { title: "Роль", dataIndex: "role_name" },
+          { title: "Сотрудник", dataIndex: "full_name" },
+          { title: "Логин", dataIndex: "login", render: (v) => <code>{v}</code> },
+          { title: "Пароль", dataIndex: "password", render: (v) => <code>{v}</code> },
+          { title: "Лимит полномочий, руб.", dataIndex: "limit_amount", align: "right", render: (v) => (v ? money(v) : "—") },
+          {
+            title: "",
+            key: "go",
+            render: (_, u) => (
+              <Button size="small" onClick={async () => { await login(u.login, u.password); nav("/"); }}>
+                Войти под этой ролью
+              </Button>
+            ),
+          },
+        ]}
+      />
+    </Card>
+  );
+}
+
 /** Последние принятые решения — видно, кому и почему одобрили или отказали. */
 function RecentDecisions() {
   const dict = useDictionaries();
@@ -74,17 +121,7 @@ export default function Dashboard() {
           </Button>
         )}
       </div>
-      {user?.role === "admin" && (
-        <Alert
-          type="info"
-          showIcon
-          style={{ marginBottom: 12 }}
-          message="Администратор не работает с заявками и персональными данными клиентов (разделение полномочий)."
-          description={<>Заявки, заёмщиков и кредитный портфель видят сотрудники кредитного отдела. Чтобы посмотреть
-            всё сразу, войдите как руководитель кредитного отдела (логин <code>head</code>). Структуру и содержимое
-            базы данных без персональных данных можно посмотреть в разделе <Link to="/data">«Таблицы БД»</Link>.</>}
-        />
-      )}
+      {user?.role === "admin" && <DemoUsers />}
       {data.alerts.map((a) => (
         <Alert key={a} type="warning" showIcon message={a} style={{ marginBottom: 12 }} />
       ))}
