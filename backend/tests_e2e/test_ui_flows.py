@@ -174,3 +174,27 @@ def test_admin(server, page):
     page.click("text=Резервные копии")
     page.click("button:has-text('Создать копию сейчас')")
     page.wait_for_selector("text=creditdss-")
+
+
+def test_registry_portfolio_and_tables(server, page):
+    """Руководитель: реестр заёмщиков → карточка клиента → кредитный портфель → таблицы БД."""
+    login(page, server, "head")
+    page.wait_for_selector("text=Последние решения")
+    page.click("aside >> text=Заёмщики")
+    page.check("text=Только с кредитами")
+    page.locator("table a[href^='/clients/']").first.click()
+    page.wait_for_selector("text=Заявки клиента")
+    page.wait_for_selector("text=Кредиты клиента")
+    page.click("aside >> text=Кредитный портфель")
+    page.wait_for_selector("text=Качество портфеля по классам риска")
+    page.click("aside >> text=Таблицы БД")
+    page.wait_for_selector("text=Таблицы базы данных")
+    page.locator("li:has-text('loans')").first.click()
+    page.wait_for_selector("th:has-text('contract_number')")
+
+
+def test_login_demo_hint(server, page):
+    """На странице входа в демо-режиме — список ролей; щелчок по строке выполняет вход."""
+    page.goto(server + "/")
+    page.click("text=Риск-аналитик")
+    page.wait_for_selector("text=Здравствуйте")
