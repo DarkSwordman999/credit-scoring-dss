@@ -97,15 +97,32 @@ def new_application():
         return render_template("new.html", products=products, form={})
     f = request.form
     errors = []
-    product = conn.execute("SELECT * FROM products WHERE id = ?", (int(f["product_id"]),)).fetchone()
-    amount, term = float(f["amount"]), int(f["term"])
+    # числа и дата проверяются и на сервере: форму можно отправить в обход проверок браузера
+    try:
+        product = conn.execute("SELECT * FROM products WHERE id = ?", (int(f["product_id"]),)).fetchone()
+        amount, term = float(f["amount"]), int(f["term"])
+        income, experience = float(f["income"]), int(f["experience"])
+        extra = {k: int(f.get(k) or 0) for k in ("max_dpd", "current_dpd", "inquiries", "history_months")}
+        payments = float(f.get("payments") or 0)
+        birth = date.fromisoformat(f["birth_date"])
+    except (KeyError, ValueError):
+        flash("Проверьте анкету: суммы, сроки и сведения из кредитного отчёта — числа, дата рождения — дата")
+        return render_template("new.html", products=products, form=f)
+    if product is None:
+        flash("Выберите кредитный продукт")
+        return render_template("new.html", products=products, form=f)
+    if min(amount, term, income, experience, payments, *extra.values()) < 0:
+        errors.append("Суммы, сроки и сведения из кредитного отчёта не могут быть отрицательными")
+    if not date(1900, 1, 1) < birth < date.today():
+        errors.append("Неверная дата рождения")
     if not product["min_amount"] <= amount <= product["max_amount"]:
         errors.append(f"Сумма для продукта «{product['name']}» — от {product['min_amount']:,.0f} "
                       f"до {product['max_amount']:,.0f} руб.".replace(",", " "))
     if not product["min_term"] <= term <= product["max_term"]:
         errors.append(f"Срок — от {product['min_term']} до {product['max_term']} мес.")
     passport = f"{f['passport_series'].strip()} {f['passport_number'].strip()}"
-    if len(f["passport_series"].strip()) != 4 or len(f["passport_number"].strip()) != 6:
+    series, number = f["passport_series"].strip(), f["passport_number"].strip()
+    if not (len(series) == 4 and series.isdigit() and len(number) == 6 and number.isdigit()):
         errors.append("Серия паспорта — 4 цифры, номер — 6 цифр")
     if "consent" not in f:
         errors.append("Без согласия клиента на обработку персональных данных и запрос в БКИ заявку не рассматривают")
@@ -125,10 +142,8 @@ def new_application():
     else:
         client_id = client["id"]
 
-    anketa = {"age": logic.age(f["birth_date"], date.today()), "term": term, "amount": amount,
-              "income": float(f["income"]), "experience": int(f["experience"]), "payments": float(f["payments"] or 0),
-              "max_dpd": int(f["max_dpd"] or 0), "current_dpd": int(f["current_dpd"] or 0),
-              "inquiries": int(f["inquiries"] or 0), "history_months": int(f["history_months"] or 0)}
+    anketa = {"age": logic.age(birth.isoformat(), date.today()), "term": term, "amount": amount,
+              "income": income, "experience": experience, "payments": payments, **extra}
     r = logic.evaluate(anketa, dict(product))
     cur = conn.execute(
         "INSERT INTO applications (client_id, product_id, created_at, amount, term, income, experience, payments, "
@@ -154,13 +169,24 @@ def card(app_id):
     if a is None:
         return redirect(url_for("applications"))
     if request.method == "POST" and a["status"] == "review":
-        decision = request.form["decision"]
-        comment = request.form["comment"].strip()
+        decision = request.form.get("decision")
+        comment = request.form.get("comment", "").strip()
+        product = conn.execute("SELECT * FROM products WHERE id = ?", (a["product_id"],)).fetchone()
+        amount = None
+        if decision == "approve":
+            try:
+                amount = float(request.form.get("amount") or 0)
+            except ValueError:
+                amount = 0
+        if decision not in ("approve", "reject"):
+            flash("Выберите решение")
+        elif decision == "approve" and not product["min_amount"] <= amount <= product["max_amount"]:
+            flash(f"Сумма одобрения — от {product['min_amount']:,.0f} до {product['max_amount']:,.0f} руб."
+                  .replace(",", " "))
         # решение не по рекомендации системы нужно обосновать
-        if decision != a["recommendation"] and len(comment) < 20:
+        elif decision != a["recommendation"] and len(comment) < 20:
             flash("Решение отличается от рекомендации системы: напишите обоснование (не короче 20 символов)")
         else:
-            amount = float(request.form["amount"] or 0) if decision == "approve" else None
             conn.execute("UPDATE applications SET status = ?, approved_amount = ?, comment = ?, decided_at = ? "
                          "WHERE id = ?", ("approved" if decision == "approve" else "rejected", amount, comment,
                                           datetime.now().isoformat(timespec="minutes"), app_id))
@@ -175,7 +201,8 @@ def card(app_id):
 @app.route("/report")
 @login_required
 def report():
-    days = int(request.args.get("days", 90))
+    days = request.args.get("days", "90")
+    days = int(days) if days.isdigit() and 1 <= int(days) <= 3650 else 90
     since = (datetime.now() - timedelta(days=days)).isoformat(timespec="minutes")
     rows = db.get_db().execute(
         "SELECT COALESCE(risk_class, 'стоп-фактор') AS cls, COUNT(*) AS total, "
@@ -198,7 +225,16 @@ def products():
     conn = db.get_db()
     if request.method == "POST":
         f = request.form
-        if float(f["min_amount"]) > float(f["max_amount"]) or int(f["min_term"]) > int(f["max_term"]):
+        try:
+            nums = [float(f["min_amount"]), float(f["max_amount"]), int(f["min_term"]), int(f["max_term"]),
+                    float(f["rate"])]
+        except (KeyError, ValueError):
+            flash("Границы суммы и срока и ставка — числа")
+            return redirect(url_for("products"))
+        if not f["name"].strip() or min(nums) <= 0:
+            flash("Укажите название, а границы и ставку — больше нуля")
+            return redirect(url_for("products"))
+        if nums[0] > nums[1] or nums[2] > nums[3]:
             flash("Нижняя граница суммы и срока не может быть больше верхней")
             return redirect(url_for("products"))
         try:
