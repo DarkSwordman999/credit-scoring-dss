@@ -147,6 +147,23 @@ class _Gen:
         self.policy = dossier.policy(db)
         self.passports: set[tuple[str, str]] = set()
         self.seq: dict[int, int] = {}
+        self.clients: list[tuple[int, datetime]] = []   # (клиент, дата последней заявки)
+        self.returning_share = 0.22                     # доля повторных обращений
+
+    def returning(self, when: datetime) -> Client | None:
+        """Повторное обращение: клиент, подававший заявку не раньше чем за 3 месяца до этой и не моложе 21 года."""
+        if not self.clients or self.rnd.random() >= self.returning_share:
+            return None
+        for _ in range(5):
+            i = self.rnd.randrange(len(self.clients))
+            cid, last = self.clients[i]
+            if (when - last).days >= 90:
+                c = self.db.get(Client, cid)
+                age = (when.date() - c.birth_date).days / 365.25
+                if 21 <= age <= 68:
+                    self.clients.pop(i)
+                    return c
+        return None
 
     def number(self, year: int) -> str:
         self.seq[year] = self.seq.get(year, 0) + 1
@@ -162,17 +179,24 @@ class _Gen:
     def application(self, when: datetime, status_hint: str | None = None, drift: float = 0.0) -> Application:
         rnd, db = self.rnd, self.db
         pr = _profile(rnd, self.products, when.date(), drift)
-        person = _person(rnd)
-        series, number = self.passport()
-        birth = when.date() - timedelta(days=pr["age"] * 365 + rnd.randint(0, 360))
-        client = Client(**person, birth_date=birth, passport_series=series, passport_number=number,
-                        passport_issued=birth + timedelta(days=20 * 365 + rnd.randint(0, 3000)),
-                        citizenship="РФ" if rnd.random() > 0.01 else "Республика Беларусь",
-                        reg_address=f"г. Тула, {rnd.choice(STREETS)}, д. {rnd.randint(1, 120)}, кв. {rnd.randint(1, 200)}",
-                        phone=f"+7 9{rnd.randint(10, 99)} {rnd.randint(100, 999)}-{rnd.randint(10, 99)}-{rnd.randint(10, 99)}",
-                        email="", created_at=when)
-        db.add(client)
-        db.flush()
+        client = self.returning(when)
+        if client is None:
+            person = _person(rnd)
+            series, number = self.passport()
+            birth = when.date() - timedelta(days=pr["age"] * 365 + rnd.randint(0, 360))
+            # паспорт выдан в 14 или 20 лет и не позже даты обращения
+            issued = birth + timedelta(days=(20 if pr["age"] >= 21 else 14) * 365 + rnd.randint(0, 3000))
+            issued = max(birth + timedelta(days=14 * 365), min(issued, when.date() - timedelta(days=rnd.randint(30, 400))))
+            client = Client(**person, birth_date=birth, passport_series=series, passport_number=number,
+                            passport_issued=issued,
+                            citizenship="РФ" if rnd.random() > 0.01 else "Республика Беларусь",
+                            reg_address=f"г. Тула, {rnd.choice(STREETS)}, д. {rnd.randint(1, 120)}, кв. {rnd.randint(1, 200)}",
+                            phone=f"+7 9{rnd.randint(10, 99)} {rnd.randint(100, 999)}-{rnd.randint(10, 99)}-{rnd.randint(10, 99)}",
+                            email=(f"client{rnd.randint(1000, 9999)}@mail.ru" if rnd.random() < 0.4 else ""),
+                            created_at=when)
+            db.add(client)
+            db.flush()
+        self.clients.append((client.id, when))
         emp = Employment(client_id=client.id, employment_type=pr["employment_type"],
                          employer="" if pr["employment_type"] in ("unemployed", "pensioner") else rnd.choice(EMPLOYERS),
                          position="" if pr["employment_type"] in ("unemployed", "pensioner") else rnd.choice(POSITIONS),
