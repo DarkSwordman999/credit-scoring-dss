@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "creditdss"
+version = "1.0.0"
+description = "СППР «Кредитный скоринг» — поддержка принятия решений по оценке кредитоспособности физических лиц"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.32.1",
+    "sqlalchemy==2.0.36",
+    "alembic==1.14.0",
+    "pydantic-settings==2.6.1",
+    "pyjwt==2.10.1",
+    "openpyxl==3.1.5",
+    "fpdf2==2.8.1",
+    "apscheduler==3.11.0",
+    "httpx==0.28.1",
+    "ldap3==2.9.1",
+    "psycopg[binary]==3.2.3",
+    "python-multipart==0.0.19",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.4", "playwright==1.49.0"]
+
+[project.scripts]
+creditdss = "creditdss.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["creditdss*"]
+
+[tool.setuptools.package-data]
+creditdss = ["migrations/*.py", "migrations/*.mako", "migrations/versions/*.py", "fonts/*", "static/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
