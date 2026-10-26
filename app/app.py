@@ -5,6 +5,7 @@
 import json
 import os
 import secrets
+import sqlite3
 from datetime import date, datetime, timedelta
 from functools import wraps
 from pathlib import Path
@@ -197,12 +198,18 @@ def products():
     conn = db.get_db()
     if request.method == "POST":
         f = request.form
-        conn.execute("INSERT INTO products (name, min_amount, max_amount, min_term, max_term, rate) "
-                     "VALUES (?, ?, ?, ?, ?, ?)",
-                     (f["name"], float(f["min_amount"]), float(f["max_amount"]), int(f["min_term"]),
-                      int(f["max_term"]), float(f["rate"])))
-        conn.commit()
-        flash("Продукт добавлен")
+        if float(f["min_amount"]) > float(f["max_amount"]) or int(f["min_term"]) > int(f["max_term"]):
+            flash("Нижняя граница суммы и срока не может быть больше верхней")
+            return redirect(url_for("products"))
+        try:
+            conn.execute("INSERT INTO products (name, min_amount, max_amount, min_term, max_term, rate) "
+                         "VALUES (?, ?, ?, ?, ?, ?)",
+                         (f["name"].strip(), float(f["min_amount"]), float(f["max_amount"]), int(f["min_term"]),
+                          int(f["max_term"]), float(f["rate"])))
+            conn.commit()
+            flash("Продукт добавлен")
+        except sqlite3.IntegrityError:
+            flash(f"Продукт «{f['name'].strip()}» уже есть в справочнике")
         return redirect(url_for("products"))
     return render_template("products.html", products=conn.execute("SELECT * FROM products ORDER BY id").fetchall())
 
