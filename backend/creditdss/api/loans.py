@@ -2,8 +2,8 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import case, func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy import case, func, or_, select
+from sqlalchemy.orm import Session, aliased
 
 from ..db import get_db
 from ..models import Application, Client, Loan, Product, ScoringResult, User
@@ -18,13 +18,16 @@ LOAN_STATUSES = {"active": "Действующий", "closed": "Погашен",
 
 def _filtered(db: Session, status: list[str] | None, q: str, date_from: date | None, date_to: date | None,
               product_id: int | None, risk_class: list[str] | None, overdue: bool):
-    last = db.query(func.max(ScoringResult.id)).group_by(ScoringResult.application_id).scalar_subquery()
-    sr = db.query(ScoringResult).filter(ScoringResult.id.in_(last)).subquery()
-    query = (db.query(Loan, Application, Client, Product, sr.c.risk_class, sr.c.pd)
+    # последняя оценка заявки — коррелированным подзапросом по индексу scoring_results.application_id
+    # (через производную таблицу SQLite перебирал все оценки для каждого кредита: 30+ с на демо-данных)
+    sr = aliased(ScoringResult)
+    latest = (select(func.max(ScoringResult.id)).where(ScoringResult.application_id == Application.id)
+              .correlate(Application).scalar_subquery())
+    query = (db.query(Loan, Application, Client, Product, sr.risk_class, sr.pd)
              .join(Application, Application.id == Loan.application_id)
              .join(Client, Client.id == Application.client_id)
              .join(Product, Product.id == Application.product_id)
-             .outerjoin(sr, sr.c.application_id == Application.id))
+             .outerjoin(sr, sr.id == latest))
     if status:
         query = query.filter(Loan.status.in_(status))
     if q.strip():
@@ -38,7 +41,7 @@ def _filtered(db: Session, status: list[str] | None, q: str, date_from: date | N
     if product_id:
         query = query.filter(Application.product_id == product_id)
     if risk_class:
-        query = query.filter(sr.c.risk_class.in_(risk_class))
+        query = query.filter(sr.risk_class.in_(risk_class))
     if overdue:
         query = query.filter(Loan.max_dpd_12m > 0)
     return query, sr
@@ -66,7 +69,7 @@ def list_loans(status: list[str] | None = Query(default=None), q: str = "", date
     # итоги по всей выборке, а не по странице
     sub = query.with_entities(Loan.id.label("id"), Loan.amount.label("amount"), Loan.rate.label("rate"),
                               Loan.status.label("status"), Loan.max_dpd_12m.label("dpd"),
-                              sr.c.risk_class.label("rc"), sr.c.pd.label("pd")).subquery()
+                              sr.risk_class.label("rc"), sr.pd.label("pd")).subquery()
     by_status = {s: {"count": n, "amount": float(v or 0)} for s, n, v in
                  db.query(sub.c.status, func.count(), func.sum(sub.c.amount)).group_by(sub.c.status).all()}
     agg = db.query(func.sum(sub.c.amount), func.sum(sub.c.amount * sub.c.rate),
