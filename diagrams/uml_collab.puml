@@ -8,18 +8,14 @@ left to right direction
 skinparam rectangle {
  BorderColor black
 }
-rectangle ":КонтроллерЗаявок" as C
-rectangle ":СервисСкоринга" as S
-rectangle ":СтопФактор" as SF
-rectangle ":ПостроительПризнаков" as FB
-rectangle ":Модель" as M
-rectangle ":КалькуляторПДН" as P
-rectangle ":РезультатСкоринга" as R
-C -- S : "1: оценить(заявка) →\n10: ← результат"
-S -- SF : "2: проверить(досье) →"
-S -- FB : "3: построить(досье) →"
-S -- M : "4: predict(признаки) →\n5: explain(признаки) →"
-S -- P : "6: рассчитатьПДН() →"
-S -- R : "8: создать(...) →"
-S -- S : "7: определитьКлассРиска()\n9: setСтатус()"
+rectangle ":ОбработчикНовойЗаявки" as C
+rectangle ":ОценкаЗаявки" as L
+rectangle ":СкоринговаяКарта" as S
+rectangle ":УсловияПоКлассам" as K
+rectangle ":Заявка" as AP
+C -- L : "1: evaluate(анкета, продукт) →\n7: ← оценка"
+L -- L : "2: pdn()\n3: stop_factor()\n5: pd_from_score(), risk_class()"
+L -- S : "4: score(анкета) →"
+L -- K : "6: условия(класс) →"
+C -- AP : "8: создать(анкета, оценка) →"
 @enduml

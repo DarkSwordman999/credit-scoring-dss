@@ -6,105 +6,46 @@ skinparam shadowing false
 skinparam monochrome true
 hide circle
 skinparam linetype ortho
-entity "Клиент" as cl {
- * id_клиента
+entity "users\nПользователь" as us {
+ * id : INTEGER
  --
- ФИО
- дата_рождения
- паспорт (серия, номер)
- адрес_регистрации
- телефон, e_mail
+ login : TEXT (уник.)
+ password_hash : TEXT
 }
-entity "Занятость" as emp {
- * id_занятости
+entity "products\nКредитный продукт" as pr {
+ * id : INTEGER
  --
- id_клиента (FK)
- работодатель
- должность
- стаж_мес
- доход_подтверждённый
+ name : TEXT (уник.)
+ min_amount, max_amount : REAL
+ min_term, max_term : INTEGER
+ rate : REAL
 }
-entity "Кредитный_продукт" as pr {
- * id_продукта
+entity "clients\nКлиент" as cl {
+ * id : INTEGER
  --
- наименование
- мин/макс сумма
- мин/макс срок
- базовая_ставка
+ last_name, first_name, middle_name : TEXT
+ birth_date : TEXT
+ passport : TEXT (уник.)
+ phone : TEXT
 }
-entity "Заявка" as ap {
- * id_заявки
+entity "applications\nЗаявка" as ap {
+ * id : INTEGER
  --
- id_клиента (FK)
- id_продукта (FK)
- сумма, срок, цель
- канал, дата
- статус
+ client_id : INTEGER (FK)
+ product_id : INTEGER (FK)
+ created_at : TEXT
+ amount, term, income, experience
+ .. сведения из кредитного отчёта ..
+ payments, max_dpd, current_dpd
+ inquiries, history_months
+ .. оценка ..
+ score, pd, risk_class, pdn
+ stop_factor, factors (JSON)
+ recommendation, rec_amount, rec_rate
+ .. решение ..
+ status, approved_amount
+ comment, decided_at
 }
-entity "Согласие" as cs {
- * id_согласия
- --
- id_заявки (FK)
- вид (ПДн / запрос в БКИ)
- дата, срок_действия
-}
-entity "Кредитный_отчёт" as cr {
- * id_отчёта
- --
- id_заявки (FK)
- дата_получения
- число_кредитов
- текущая_задолженность
- ежемес_платежи
- макс_просрочка_дн
- запросов_за_6_мес
-}
-entity "Модель" as md {
- * id_модели
- --
- версия, алгоритм
- дата_обучения
- ROC_AUC, Gini
- статус
-}
-entity "Результат_скоринга" as sr {
- * id_результата
- --
- id_заявки (FK)
- id_модели (FK)
- PD, скоринговый_балл
- класс_риска, ПДН
- факторы (SHAP)
-}
-entity "Стоп_фактор" as sf {
- * id_стоп_фактора
- --
- код, описание
- условие, активен
-}
-entity "Решение" as dc {
- * id_решения
- --
- id_заявки (FK)
- id_сотрудника (FK)
- рекомендация
- итог, сумма, ставка
- комментарий, дата
-}
-entity "Сотрудник" as us {
- * id_сотрудника
- --
- ФИО, роль
- лимит_полномочий
-}
-cl ||--o{ emp
 cl ||--o{ ap
 pr ||--o{ ap
-ap ||--|{ cs
-ap ||--o| cr
-ap ||--o{ sr
-md ||--o{ sr
-sr }o--o{ sf : сработал
-ap ||--o{ dc
-us ||--o{ dc
 @enduml

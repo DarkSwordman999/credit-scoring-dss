@@ -6,37 +6,27 @@ skinparam shadowing false
 skinparam monochrome true
 left to right direction
 skinparam componentStyle rectangle
-actor "Кредитный\nспециалист" as KS
-actor "Андеррайтер" as UW
-actor "Риск-аналитик" as RA
-rectangle "Клиентская часть\n(веб-интерфейс АРМ)" as UI
-rectangle "Серверная часть СППР" as SRV {
-  rectangle "Подсистема приёма\nи учёта заявок" as A
-  rectangle "Подсистема сбора\nи верификации данных" as B
-  rectangle "Подсистема скоринга\n(ML-модуль)" as C
-  rectangle "Подсистема поддержки\nпринятия решений" as D
-  rectangle "Подсистема мониторинга\nи обучения моделей" as E
-  rectangle "Подсистема отчётности" as F
-  rectangle "Подсистема\nадминистрирования" as G
+actor "Специалист\nпо займам" as KS
+rectangle "Персональный компьютер организации (Windows)" as PC {
+  rectangle "Веб-браузер" as UI
+  rectangle "Программа «Кредитный скоринг Базовая»\n(Python, Flask)" as SRV {
+    rectangle "Учёт заявок\nи клиентов" as A
+    rectangle "Оценка заявки\n(стоп-факторы, ПДН,\nскоринговая карта)" as C
+    rectangle "Решение\nпо заявке" as D
+    rectangle "Отчёт и справочник\nпродуктов" as F
+  }
+  database "Файл базы данных\nSQLite (creditdss.db)" as DB
 }
-database "БД заявок\nи клиентов" as DB
-database "Реестр\nмоделей" as MR
-rectangle "Бюро кредитных\nисторий (БКИ)" as BKI
-rectangle "Автоматизированная\nбанковская система" as ABS
+rectangle "Портал бюро\nкредитных историй" as BKI
 KS --> UI
-UW --> UI
-RA --> UI
 UI --> A
 UI --> D
 UI --> F
-A --> B
-B --> C
+A --> C
 C --> D
-E --> C
-B --> BKI
-B --> ABS
-D --> ABS
 A --> DB
-C --> MR
-E --> MR
+C --> DB
+D --> DB
+F --> DB
+KS ..> BKI : кредитный отчёт\n(вручную)
 @enduml

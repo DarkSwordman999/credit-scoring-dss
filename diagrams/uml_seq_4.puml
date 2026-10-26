@@ -4,20 +4,16 @@ skinparam dpi 150
 skinparam defaultFontName Arial
 skinparam shadowing false
 skinparam monochrome true
-actor "Руководитель отдела" as HD
-boundary "ЭкранОтчётов" as UI
-control "СервисОтчётов" as S
-entity "Заявка" as AP
-entity "Решение" as D
-entity "РезультатСкоринга" as R
-HD -> UI : выбрать вид отчёта и период
-UI -> S : сформировать(вид, период)
-S -> AP : выбрать(период)
-S -> D : выбрать(период)
-S -> R : выбрать(период)
-S -> S : агрегировать показатели (число заявок, уровень одобрения, распределение по классам риска)
-S --> UI : данные отчёта
-UI --> HD : таблицы и графики
-HD -> UI : выгрузить в XLSX
-UI --> HD : файл отчёта
+actor "Руководитель" as HD
+boundary "products.html\n(Справочник)" as UI
+control "products()" as C
+entity "Продукт" as PR
+HD -> UI : открыть справочник
+UI -> C : GET /products
+C -> PR : все продукты
+C --> UI : таблица продуктов
+HD -> UI : наименование, диапазоны, ставка
+UI -> C : POST /products
+C -> PR : добавить(продукт)
+C --> UI : «Продукт добавлен»
 @enduml
