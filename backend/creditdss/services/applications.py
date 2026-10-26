@@ -404,6 +404,25 @@ def refusal_reasons(db: Session, app_id: int, n: int = 3) -> list[str]:
     return [f"{x['label']}: {x['bin']}" for x in sr.factors if x.get("effect") == "risk_up"][:n]
 
 
+def decision_summary(app: Application, sr: ScoringResult | None, decisions: list[Decision]) -> dict:
+    """Кратко для списков: кто и как решил и почему — стоп-факторы, комментарий к решению или главные факторы оценки."""
+    final = next((d for d in reversed(decisions) if d.outcome in ("approve", "approve_changed", "reject")), None)
+    last = decisions[-1] if decisions else None
+    if sr is not None and sr.stop_factors:
+        reason = "Стоп-фактор: " + "; ".join(s["description"] for s in sr.stop_factors)
+    elif final is not None and final.comment:
+        reason = final.comment
+    elif sr is not None and sr.factors:
+        want = "risk_up" if app.status == "rejected" or (sr.recommendation == "reject") else "risk_down"
+        top = [f"{x['label']}: {x['bin']}" for x in sr.factors if x.get("effect") == want][:2]
+        reason = ("Повышают риск: " if want == "risk_up" else "Снижают риск: ") + "; ".join(top) if top else ""
+    else:
+        reason = ""
+    who = final or last
+    return {"decision": who.outcome if who else None, "decided_by": who.user.full_name if who else "",
+            "decision_stage": who.stage if who else None, "reason": reason}
+
+
 def notify_client(db: Session, app: Application, d: Decision) -> Notification:
     cl = app.client
     if app.status == "approved":

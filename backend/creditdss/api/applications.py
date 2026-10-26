@@ -8,7 +8,7 @@ from typing import Literal
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from .. import audit
@@ -130,20 +130,46 @@ def actions(user: User, app: Application) -> list[str]:
     return out
 
 
-def _list_item(app: Application, sr: ScoringResult | None, masked: bool) -> dict:
+def _list_item(app: Application, sr: ScoringResult | None, masked: bool, decisions: list[Decision] | None = None,
+               loan: Loan | None = None) -> dict:
     return {"id": app.id, "number": app.number, "created_at": app.created_at, "status": app.status,
-            "status_name": STATUSES[app.status], "client": _client_name(app.client, masked),
+            "status_name": STATUSES[app.status], "client_id": app.client_id, "client": _client_name(app.client, masked),
             "product": app.product.name, "amount": float(app.amount), "term_months": app.term_months,
             "channel": app.channel, "risk_class": sr.risk_class if sr else None,
-            "pd": sr.pd if sr else None, "recommendation": sr.recommendation if sr else None,
-            "officer": app.officer.full_name if app.officer else ""}
+            "pd": sr.pd if sr else None, "score": round(sr.score) if sr and sr.score is not None else None,
+            "pdn": sr.pdn if sr else None, "recommendation": sr.recommendation if sr else None,
+            "officer": app.officer.full_name if app.officer else "", "decided_at": app.decided_at,
+            "loan_status": loan.status if loan else None,
+            **svc.decision_summary(app, sr, decisions or [])}
+
+
+def latest_by_app(db: Session, apps: list[Application]) -> tuple[dict, dict, dict]:
+    """Последняя оценка, решения и кредит по каждой заявке — тремя запросами на страницу."""
+    ids = [a.id for a in apps]
+    scor, decs, loans = {}, {}, {}
+    if ids:
+        for sr in db.query(ScoringResult).filter(ScoringResult.application_id.in_(ids)).order_by(ScoringResult.id):
+            scor[sr.application_id] = sr
+        for d in db.query(Decision).filter(Decision.application_id.in_(ids)).order_by(Decision.id):
+            decs.setdefault(d.application_id, []).append(d)
+        for ln in db.query(Loan).filter(Loan.application_id.in_(ids)):
+            loans[ln.application_id] = ln
+    return scor, decs, loans
 
 
 @router.get("", summary="Список заявок с отбором")
 def list_applications(status: list[str] | None = Query(default=None), q: str = "", date_from: date | None = None,
                       date_to: date | None = None, mine: bool = False, page: int = 1, size: int = 50,
+                      product_id: int | None = None, risk_class: list[str] | None = Query(default=None),
                       user: User = Depends(VIEW), db: Session = Depends(get_db)):
     query = db.query(Application).join(Client, Client.id == Application.client_id)
+    if product_id:
+        query = query.filter(Application.product_id == product_id)
+    if risk_class:
+        last = (db.query(func.max(ScoringResult.id)).group_by(ScoringResult.application_id)).scalar_subquery()
+        query = query.filter(Application.id.in_(
+            db.query(ScoringResult.application_id).filter(ScoringResult.id.in_(last),
+                                                         ScoringResult.risk_class.in_(risk_class))))
     if status:
         query = query.filter(Application.status.in_(status))
     if q.strip():
@@ -159,12 +185,9 @@ def list_applications(status: list[str] | None = Query(default=None), q: str = "
     total = query.count()
     size = max(1, min(size, 200))
     apps = query.order_by(Application.created_at.desc()).offset((max(page, 1) - 1) * size).limit(size).all()
-    latest = {}
-    if apps:
-        for sr in (db.query(ScoringResult).filter(ScoringResult.application_id.in_([a.id for a in apps]))
-                   .order_by(ScoringResult.id).all()):
-            latest[sr.application_id] = sr
-    return {"total": total, "items": [_list_item(a, latest.get(a.id), _mask(user)) for a in apps]}
+    scor, decs, loans = latest_by_app(db, apps)
+    return {"total": total, "items": [_list_item(a, scor.get(a.id), _mask(user), decs.get(a.id), loans.get(a.id))
+                                      for a in apps]}
 
 
 @router.get("/dictionaries", summary="Справочные значения анкеты, статусы, роли")

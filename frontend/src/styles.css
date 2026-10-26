@@ -88,3 +88,7 @@ body,
     padding: 12px !important;
   }
 }
+
+.nw {
+  white-space: nowrap;
+}

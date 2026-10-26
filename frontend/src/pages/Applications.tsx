@@ -1,29 +1,13 @@
 import { useState } from "react";
-import { Button, Card, Checkbox, DatePicker, Input, Select, Table, Tag, Typography } from "antd";
+import { Button, Card, Checkbox, DatePicker, Input, Select, Table, Typography } from "antd";
 import { PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../auth";
-import { CLASS_COLORS, dt, iso, money, pct, REC_COLORS, STATUS_COLORS } from "../format";
-import { useDictionaries, useLoad } from "../hooks";
-
-interface Row {
-  id: number;
-  number: string;
-  created_at: string;
-  status: string;
-  status_name: string;
-  client: string;
-  product: string;
-  amount: number;
-  term_months: number;
-  channel: string;
-  risk_class: string | null;
-  pd: number | null;
-  recommendation: string | null;
-  officer: string;
-}
+import { appColumns, type AppRow } from "../appColumns";
+import { iso } from "../format";
+import { useDictionaries, useLoad, useProducts } from "../hooks";
 
 export default function Applications() {
   const { can } = useAuth();
@@ -34,20 +18,25 @@ export default function Applications() {
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState<[Dayjs | null, Dayjs | null] | null>(null);
   const [mine, setMine] = useState(false);
+  const [productId, setProductId] = useState<number | undefined>();
+  const [classes, setClasses] = useState<string[]>([]);
+  const products = useProducts();
   const [page, setPage] = useState(1);
 
   const { data, loading, reload } = useLoad(
     () =>
-      api.get<{ total: number; items: Row[] }>("/api/applications", {
+      api.get<{ total: number; items: AppRow[] }>("/api/applications", {
         status,
         q: search,
         date_from: iso(period?.[0]),
         date_to: iso(period?.[1]),
         mine,
+        product_id: productId,
+        risk_class: classes,
         page,
         size: 50,
       }),
-    [status.join(","), search, period?.[0]?.valueOf(), period?.[1]?.valueOf(), mine, page],
+    [status.join(","), search, period?.[0]?.valueOf(), period?.[1]?.valueOf(), mine, productId, classes.join(","), page],
   );
 
   return (
@@ -96,6 +85,29 @@ export default function Applications() {
               setPeriod(v as any);
             }}
           />
+          <Select
+            allowClear
+            placeholder="Продукт"
+            style={{ minWidth: 220 }}
+            value={productId}
+            onChange={(v) => {
+              setPage(1);
+              setProductId(v);
+            }}
+            options={products.map((p) => ({ value: p.id, label: p.name }))}
+          />
+          <Select
+            mode="multiple"
+            allowClear
+            placeholder="Класс риска"
+            style={{ minWidth: 150 }}
+            value={classes}
+            onChange={(v) => {
+              setPage(1);
+              setClasses(v);
+            }}
+            options={["A", "B", "C", "D", "E"].map((c) => ({ value: c, label: c }))}
+          />
           {can("credit_officer") && (
             <Checkbox checked={mine} onChange={(e) => setMine(e.target.checked)}>
               Только мои
@@ -103,7 +115,7 @@ export default function Applications() {
           )}
           <Button icon={<ReloadOutlined />} onClick={() => reload()} />
         </div>
-        <Table<Row>
+        <Table<AppRow>
           rowKey="id"
           size="middle"
           loading={loading}
@@ -118,39 +130,7 @@ export default function Applications() {
             onChange: setPage,
           }}
           onRow={(r) => ({ onDoubleClick: () => nav(`/applications/${r.id}`) })}
-          columns={[
-            { title: "Номер", dataIndex: "number", render: (v, r) => <Link to={`/applications/${r.id}`}>{v}</Link> },
-            { title: "Дата", dataIndex: "created_at", render: dt },
-            { title: "Клиент", dataIndex: "client" },
-            { title: "Продукт", dataIndex: "product" },
-            { title: "Сумма, руб.", dataIndex: "amount", align: "right", render: money },
-            { title: "Срок", dataIndex: "term_months", align: "right", render: (v) => `${v} мес.` },
-            {
-              title: "Класс / PD",
-              dataIndex: "risk_class",
-              render: (v, r) =>
-                v ? (
-                  <span>
-                    <Tag color={CLASS_COLORS[v]}>{v}</Tag>
-                    {pct(r.pd, 1)}
-                  </span>
-                ) : r.recommendation === "reject" ? (
-                  <Tag color="red">стоп-фактор</Tag>
-                ) : (
-                  "—"
-                ),
-            },
-            {
-              title: "Рекомендация",
-              dataIndex: "recommendation",
-              render: (v) => (v ? <Tag color={REC_COLORS[v]}>{dict?.recommendations[v] || v}</Tag> : "—"),
-            },
-            {
-              title: "Состояние",
-              dataIndex: "status",
-              render: (v, r) => <Tag color={STATUS_COLORS[v]}>{r.status_name}</Tag>,
-            },
-          ]}
+          columns={appColumns(dict?.recommendations)}
         />
       </Card>
     </>

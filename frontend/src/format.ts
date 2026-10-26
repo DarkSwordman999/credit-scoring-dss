@@ -49,3 +49,22 @@ export const OUTCOMES: Record<string, string> = {
   committee: "Передана на кредитный комитет",
   docs: "Запрошены документы",
 };
+
+export const OUTCOME_COLORS: Record<string, string> = {
+  approve: "green",
+  approve_changed: "gold",
+  reject: "red",
+  committee: "purple",
+  docs: "orange",
+};
+
+export const LOAN_STATUSES: Record<string, string> = {
+  active: "Действующий",
+  closed: "Погашен",
+  default: "Дефолт (90+)",
+};
+
+export const LOAN_COLORS: Record<string, string> = { active: "blue", closed: "green", default: "red" };
+
+/** Цвет просрочки в днях: 0 — нет, до 30 — внимание, 90+ — дефолт. */
+export const dpdColor = (v: number) => (v >= 90 ? "red" : v >= 30 ? "orange" : v > 0 ? "gold" : "default");
