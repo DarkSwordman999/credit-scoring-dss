@@ -150,7 +150,7 @@ class _Gen:
 
     def number(self, year: int) -> str:
         self.seq[year] = self.seq.get(year, 0) + 1
-        return f"З-{year}-{self.seq[year]:06d}"
+        return f"КЗ-{year}-{self.seq[year]:06d}"
 
     def passport(self) -> tuple[str, str]:
         while True:
@@ -278,7 +278,8 @@ class _Gen:
         default = rnd.random() < p * seen
         max_dpd = rnd.randint(90, 200) if default else rnd.choices([0, 5, 15, 40], [80, 10, 7, 3])[0] if seen else 0
         status = "default" if default else ("closed" if months > d.term_months else "active")
-        self.db.add(Loan(application_id=app.id, contract_number=f"КД-{app.number}", issued_at=issued, amount=d.amount,
+        self.db.add(Loan(application_id=app.id, contract_number="КД-" + app.number.removeprefix("КЗ-"),
+                         issued_at=issued, amount=d.amount,
                          term_months=d.term_months, rate=d.rate, status=status, max_dpd_12m=max_dpd))
 
 

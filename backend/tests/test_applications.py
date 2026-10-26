@@ -34,7 +34,7 @@ def register(client, login, app_id):
 
 def test_full_cycle_approve_and_issue(client, login, session):
     app = create(client, login)
-    assert app["status"] == "draft" and app["number"].startswith("З-")
+    assert app["status"] == "draft" and app["number"].startswith("КЗ-")
     r = register(client, login, app["id"])
     assert r.status_code == 200, r.text
     card = r.json()
@@ -59,7 +59,7 @@ def test_full_cycle_approve_and_issue(client, login, session):
     r = client.post(f"/api/applications/{app['id']}/issue", headers=login("officer"))
     assert r.json()["status"] == "issued"
     loan = session.query(Loan).filter_by(application_id=app["id"]).one()
-    assert loan.contract_number == f"КД-{app['number']}"
+    assert loan.contract_number == "КД-" + app["number"].removeprefix("КЗ-")
     actions = [a.action for a in session.query(AuditLog).filter_by(entity_id=app["number"]).order_by(AuditLog.id)]
     assert actions[0] == "Создание заявки" and "Кредит выдан" in actions
 

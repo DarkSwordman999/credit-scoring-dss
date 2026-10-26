@@ -127,7 +127,7 @@ def abs_send_approved(payload: dict, mode: str = "demo", url: str = "", timeout:
         except httpx.HTTPError as e:
             raise Unavailable(f"АБС недоступна: {e}") from e
         return str(r.json().get("contract_number", ""))
-    return f"КД-{payload['number']}"
+    return "КД-" + payload["number"].removeprefix("КЗ-")
 
 
 # ---------------------------------------------------------------- проверки

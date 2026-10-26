@@ -25,7 +25,7 @@ PASSPORT_NUMBER = re.compile(r"^\d{6}$")
 
 def next_number(db: Session) -> str:
     year = date.today().year
-    prefix = f"З-{year}-"
+    prefix = f"КЗ-{year}-"
     last = db.query(func.max(Application.number)).filter(Application.number.like(prefix + "%")).scalar()
     n = int(last.rsplit("-", 1)[1]) + 1 if last else 1
     return f"{prefix}{n:06d}"
