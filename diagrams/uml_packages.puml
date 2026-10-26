@@ -7,7 +7,7 @@ skinparam monochrome true
 package "ui (граничные классы)" as ui
 package "application (управляющие классы)" as app
 package "domain (сущности)" as dom
-package "ml (модели и обучение)" as ml
+package "scoring (скоринговая карта, метрики)" as ml
 package "integration (адаптеры БКИ, АБС)" as integ
 package "reporting (отчёты)" as rep
 ui ..> app

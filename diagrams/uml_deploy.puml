@@ -8,14 +8,10 @@ node "АРМ сотрудника\n<<device>>" as pc {
   artifact "Веб-браузер" as br
 }
 node "Сервер приложений\n<<Linux, Docker>>" as app {
-  component "web-frontend\n(nginx + React)" as fe
-  component "backend-api\n(FastAPI)" as be
-  component "scoring-service" as sc
-  component "integration-gateway" as gw
-}
-node "Сервер обучения моделей\n<<Linux>>" as mls {
-  component "training-service" as tr
-  component "MLflow\n(реестр моделей)" as mlf
+  component "proxy\n(Caddy, HTTPS)" as fe
+  component "api\n(FastAPI + интерфейс React)" as be
+  component "scoring\n(сервис скоринга)" as sc
+  component "scheduler\n(планировщик)" as gw
 }
 node "Сервер БД\n<<Linux>>" as dbs {
   database "PostgreSQL\n(credit_db)" as db
@@ -25,13 +21,11 @@ node "АБС Банка" as abs
 node "Контроллер домена\n(LDAP)" as ldap
 br --> fe : HTTPS
 fe --> be : REST
-be --> sc : REST
-be --> gw
-gw --> bki : HTTPS (TLS)
-gw --> abs : API
+be --> sc : REST (POST /score)
+be --> bki : HTTPS (TLS)
+be --> abs : API
 be --> db : SQL
-sc --> mlf : загрузка модели
-tr --> mlf : регистрация версии
-tr --> db : выборка данных
+sc --> db : версия методики
+gw --> db : повтор запросов БКИ,\nмониторинг, резервные копии
 be --> ldap : LDAP
 @enduml
