@@ -19,3 +19,4 @@ release/
 # базовая редакция
 app/creditdss.db
 app/wheels/
+app/secret.key

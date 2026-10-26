@@ -4,6 +4,7 @@
 """
 import json
 import os
+import secrets
 from datetime import date, datetime, timedelta
 from functools import wraps
 from pathlib import Path
@@ -14,8 +15,19 @@ from werkzeug.security import check_password_hash
 import db
 import logic
 
+
+def secret_key() -> str:
+    """Ключ подписи сессии: из переменной SECRET_KEY или из файла secret.key, который создаётся при первом запуске."""
+    if os.environ.get("SECRET_KEY"):
+        return os.environ["SECRET_KEY"]
+    path = Path(__file__).parent / "secret.key"
+    if not path.exists():
+        path.write_text(secrets.token_hex(32), encoding="ascii")
+    return path.read_text(encoding="ascii").strip()
+
+
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "creditdss-dev-key")
+app.config["SECRET_KEY"] = secret_key()
 app.config["DATABASE"] = str(Path(__file__).parent / "creditdss.db")
 app.teardown_appcontext(db.close_db)
 
@@ -197,4 +209,4 @@ def products():
 
 if __name__ == "__main__":
     db.create_tables(app.config["DATABASE"])
-    app.run(debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=os.environ.get("FLASK_DEBUG") == "1")
