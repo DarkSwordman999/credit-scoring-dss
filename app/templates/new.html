@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Новая заявка</h1>
+<p class="small">Сведения о кредитной истории вносятся по кредитному отчёту, полученному на портале бюро кредитных историй.</p>
+<form method="post" class="box">
+  <b>Клиент</b>
+  <label>Фамилия <input name="last_name" value="{{ form.last_name }}" required></label>
+  <label>Имя <input name="first_name" value="{{ form.first_name }}" required></label>
+  <label>Отчество <input name="middle_name" value="{{ form.middle_name }}"></label>
+  <label>Дата рождения <input name="birth_date" type="date" value="{{ form.birth_date }}" required></label>
+  <div class="inline">
+    <label>Серия паспорта <input name="passport_series" value="{{ form.passport_series }}" maxlength="4" required></label>
+    <label>Номер <input name="passport_number" value="{{ form.passport_number }}" maxlength="6" required></label>
+  </div>
+  <label>Телефон <input name="phone" value="{{ form.phone }}"></label>
+  <label>Подтверждённый доход, ₽ в месяц <input name="income" type="number" min="0" value="{{ form.income }}" required></label>
+  <label>Стаж на текущем месте, мес. <input name="experience" type="number" min="0" value="{{ form.experience or 12 }}" required></label>
+
+  <b>Кредит</b>
+  <label>Продукт
+    <select name="product_id">
+      {% for p in products %}
+      <option value="{{ p.id }}" {{ 'selected' if form.product_id|string == p.id|string }}>{{ p.name }} ({{ money(p.min_amount) }}–{{ money(p.max_amount) }} ₽, {{ p.rate }} %)</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Сумма, ₽ <input name="amount" type="number" min="1" value="{{ form.amount }}" required></label>
+  <label>Срок, мес. <input name="term" type="number" min="1" value="{{ form.term or 24 }}" required></label>
+
+  <b>Кредитный отчёт БКИ</b>
+  <label>Платежи по действующим кредитам, ₽ в месяц <input name="payments" type="number" min="0" value="{{ form.payments or 0 }}"></label>
+  <label>Длина кредитной истории, мес. (0 — истории нет) <input name="history_months" type="number" min="0" value="{{ form.history_months or 0 }}"></label>
+  <label>Максимальная просрочка в истории, дней <input name="max_dpd" type="number" min="0" value="{{ form.max_dpd or 0 }}"></label>
+  <label>Текущая просрочка, дней <input name="current_dpd" type="number" min="0" value="{{ form.current_dpd or 0 }}"></label>
+  <label>Запросов в БКИ за 6 месяцев <input name="inquiries" type="number" min="0" value="{{ form.inquiries or 0 }}"></label>
+
+  <label class="inline"><input type="checkbox" name="consent" {{ 'checked' if form.consent }}> Клиент дал согласие на обработку персональных данных и запрос в БКИ</label>
+  <button>Оценить заявку</button>
+</form>
+{% endblock %}

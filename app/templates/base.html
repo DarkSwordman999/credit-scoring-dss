@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Кредитный скоринг</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  {% if session.user %}
+  <nav>
+    <b>Кредитный скоринг</b>
+    <a href="{{ url_for('applications') }}">Заявки</a>
+    <a href="{{ url_for('new_application') }}">Новая заявка</a>
+    <a href="{{ url_for('report') }}">Отчёт</a>
+    <a href="{{ url_for('products') }}">Продукты</a>
+    <a href="{{ url_for('logout') }}" class="right">Выйти ({{ session.user }})</a>
+  </nav>
+  {% endif %}
+  <main>
+    {% for msg in get_flashed_messages() %}
+      <p class="flash">{{ msg }}</p>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

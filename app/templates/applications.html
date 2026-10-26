@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Заявки</h1>
+<form method="get" class="inline">
+  <select name="status">
+    <option value="">Все</option>
+    {% for k, v in statuses.items() %}<option value="{{ k }}" {{ 'selected' if k == status }}>{{ v }}</option>{% endfor %}
+  </select>
+  <button>Показать</button>
+</form>
+<br>
+<table>
+  <tr><th>№</th><th>Дата</th><th>Клиент</th><th>Продукт</th><th>Сумма, ₽</th><th>Срок</th><th>Класс</th><th>PD</th><th>Рекомендация</th><th>Состояние</th></tr>
+  {% for a in rows %}
+  <tr>
+    <td><a href="{{ url_for('card', app_id=a.id) }}">{{ a.id }}</a></td>
+    <td class="nw">{{ a.created_at[:10] }}</td>
+    <td>{{ a.client }}</td>
+    <td>{{ a.product }}</td>
+    <td class="nw">{{ money(a.amount) }}</td>
+    <td class="nw">{{ a.term }} мес.</td>
+    <td>{% if a.risk_class %}<span class="tag cls-{{ a.risk_class }}">{{ a.risk_class }}</span>{% else %}<span class="tag cls-E">стоп</span>{% endif %}</td>
+    <td class="nw">{{ percent(a.pd, 2) }}</td>
+    <td>{{ 'Одобрить' if a.recommendation == 'approve' else 'Отказать' }}</td>
+    <td><span class="tag st-{{ a.status }}">{{ statuses[a.status] }}</span></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="10">Заявок нет</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

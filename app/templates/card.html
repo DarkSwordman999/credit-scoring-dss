@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Заявка № {{ a.id }} <span class="tag st-{{ a.status }}">{{ statuses[a.status] }}</span></h1>
+<table>
+  <tr><th>Клиент</th><td>{{ a.last_name }} {{ a.first_name }} {{ a.middle_name }}, {{ a.birth_date }}</td></tr>
+  <tr><th>Паспорт, телефон</th><td>{{ a.passport }}, {{ a.phone or '—' }}</td></tr>
+  <tr><th>Кредит</th><td>{{ a.product }}: {{ money(a.amount) }} ₽ на {{ a.term }} мес. под {{ a.rate }} %</td></tr>
+  <tr><th>Доход, стаж</th><td>{{ money(a.income) }} ₽ в месяц, {{ a.experience }} мес.</td></tr>
+  <tr><th>Кредитная история</th><td>{{ a.history_months }} мес.; платежи {{ money(a.payments) }} ₽ в месяц; макс. просрочка {{ a.max_dpd }} дн.;
+    текущая {{ a.current_dpd }} дн.; запросов за 6 мес. {{ a.inquiries }}</td></tr>
+  <tr><th>Подана</th><td>{{ a.created_at.replace('T', ' ') }}</td></tr>
+</table>
+
+<h2>Оценка</h2>
+{% if a.stop_factor %}
+<p class="error">Сработал стоп-фактор: <b>{{ a.stop_factor }}</b>. Рекомендация — отказать.</p>
+{% else %}
+<table>
+  <tr><th>Вероятность дефолта</th><th>Балл</th><th>Класс риска</th><th>ПДН</th><th>Рекомендация</th></tr>
+  <tr>
+    <td class="pd">{{ percent(a.pd, 2) }}</td>
+    <td>{{ a.score|int }}</td>
+    <td><span class="tag cls-{{ a.risk_class }}">{{ a.risk_class }}</span></td>
+    <td>{{ percent(a.pdn) }}</td>
+    <td>{% if a.recommendation == 'approve' %}Одобрить: {{ money(a.rec_amount) }} ₽ под {{ a.rec_rate }} %{% else %}Отказать{% endif %}</td>
+  </tr>
+</table>
+<table>
+  <tr><th>Фактор</th><th>Значение</th><th>Влияние на риск</th></tr>
+  {% for f in factors %}
+  <tr>
+    <td>{{ f.label }}</td>
+    <td>{{ f.text }}</td>
+    <td class="{{ 'up' if f.effect < 0 else 'down' }}">{{ 'повышает' if f.effect < 0 else 'снижает' }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2>Решение</h2>
+{% if a.status == 'review' %}
+<form method="post" class="box">
+  <label>Решение
+    <select name="decision">
+      <option value="approve" {{ 'selected' if a.recommendation == 'approve' }}>Одобрить</option>
+      <option value="reject" {{ 'selected' if a.recommendation == 'reject' }}>Отказать</option>
+    </select>
+  </label>
+  <label>Сумма, ₽ (при одобрении) <input name="amount" type="number" min="0" value="{{ (a.rec_amount or a.amount)|int }}"></label>
+  <label>Комментарий (обязателен, если решение не совпадает с рекомендацией) <textarea name="comment" rows="3"></textarea></label>
+  <button>Сохранить решение</button>
+</form>
+{% else %}
+<p>{{ statuses[a.status] }} {{ a.decided_at.replace('T', ' ') }}{% if a.approved_amount %}: {{ money(a.approved_amount) }} ₽{% endif %}.
+  {% if a.comment %}<br>Комментарий: {{ a.comment }}{% endif %}</p>
+{% endif %}
+{% endblock %}

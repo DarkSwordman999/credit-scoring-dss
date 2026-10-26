@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Отчёт за {{ days }} дней</h1>
+<form method="get" class="inline">
+  <select name="days">
+    {% for d in (30, 90, 180, 365) %}<option value="{{ d }}" {{ 'selected' if d == days }}>{{ d }} дней</option>{% endfor %}
+  </select>
+  <button>Показать</button>
+</form>
+<p>Заявок: <b>{{ total }}</b>. Одобрено: <b>{{ approved }}</b> (уровень одобрения {{ percent(rate) }}). Одобрено на сумму <b>{{ money(amount) }} ₽</b>.</p>
+<table>
+  <tr><th>Класс риска</th><th>Заявок</th><th>Одобрено</th><th>Отклонено</th><th>Сумма одобренных, ₽</th></tr>
+  {% for r in rows %}
+  <tr><td>{{ r.cls }}</td><td>{{ r.total }}</td><td>{{ r.approved }}</td><td>{{ r.rejected }}</td><td>{{ money(r.amount) }}</td></tr>
+  {% else %}
+  <tr><td colspan="5">Заявок за период нет</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
