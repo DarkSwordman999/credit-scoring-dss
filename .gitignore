@@ -15,3 +15,7 @@ frontend/node_modules/
 frontend/dist/
 release/
 .env
+
+# базовая редакция
+app/creditdss.db
+app/wheels/
