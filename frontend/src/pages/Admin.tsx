@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Card, Checkbox, DatePicker, Form, Input, InputNumber, Modal, Select, Space, Table, Tabs, Tag,
+import { Button, Card, Checkbox, DatePicker, Form, Input, InputNumber, Modal, Select, Space, Switch, Table, Tabs, Tag,
   Typography } from "antd";
 import { CloudDownloadOutlined, DownloadOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
@@ -113,11 +113,17 @@ function Settings() {
     <Form form={form} layout="horizontal" labelCol={{ span: 10 }} wrapperCol={{ span: 10 }} initialValues={data.values}
           onFinish={save} style={{ maxWidth: 900 }}>
       {keys.map((k) => (
+        typeof data.values[k] === "boolean" ? (
+          <Form.Item key={k} name={k} label={data.labels[k]} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        ) : (
         <Form.Item key={k} name={k} label={data.labels[k]}>
           {k.endsWith("_mode") ? (
             <Select options={[{ value: "demo", label: "Встроенный имитатор (демо)" }, { value: "http", label: "HTTP API" }]} />
           ) : k.endsWith("_url") ? <Input placeholder="https://…" /> : <InputNumber step={k.includes("rate") || k.includes("alert") ? 0.01 : 1} />}
         </Form.Item>
+        )
       ))}
       <Typography.Paragraph type="secondary">
         Пороги классов риска и матрица условий — в «Справочники → Классы риска и условия».

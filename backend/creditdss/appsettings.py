@@ -25,6 +25,8 @@ DEFAULTS: dict = {
     "consent_days": 90,
     # минимальная длина комментария, если решение отличается от рекомендации (С-11)
     "comment_min": 20,
+    # показывать на странице входа демо-пользователей и их роли (включается загрузкой демо-данных)
+    "demo_hint": False,
 }
 
 LABELS = {
@@ -40,6 +42,7 @@ LABELS = {
     "gini_drop_alert": "Порог снижения Gini (доля)",
     "consent_days": "Срок действия согласий, дней",
     "comment_min": "Минимальная длина комментария к решению",
+    "demo_hint": "Показывать демо-пользователей на странице входа",
 }
 
 
@@ -78,6 +81,10 @@ def _check(key: str, value):
     if key in ("bki_mode", "abs_mode"):
         if value not in ("demo", "http"):
             raise DomainError("Режим: demo или http")
+        return value
+    if key == "demo_hint":
+        if not isinstance(value, bool):
+            raise DomainError(f"{LABELS[key]}: да или нет")
         return value
     if key in ("bki_url", "abs_url"):
         return str(value or "").strip()
