@@ -17,6 +17,7 @@ from ..security import current_user, require
 router = APIRouter(prefix="/api/nsi", tags=["Справочники"])
 
 ADMIN = require("admin")
+OPEN_PDN = 99          # «до ∞»: так верхнюю границу последнего интервала ПДН показывает интерфейс
 POLICY = require("risk_analyst", "admin")
 
 
@@ -66,6 +67,8 @@ def update_product(pid: int, body: ProductIn, user: User = Depends(ADMIN), db: S
     p = db.get(Product, pid)
     if p is None:
         raise NotFound("Продукт не найден")
+    if db.query(Product).filter(Product.name == body.name.strip(), Product.id != pid).first():
+        raise Conflict("Продукт с таким названием уже есть")
     changes = audit.diff(p, body.model_dump())
     audit.log(db, user, "Изменён кредитный продукт", "product", p.id, changes)
     db.commit()
@@ -124,6 +127,8 @@ def update_sf(sid: int, body: StopFactorIn, user: User = Depends(POLICY), db: Se
     s = db.get(StopFactor, sid)
     if s is None:
         raise NotFound("Стоп-фактор не найден")
+    if db.query(StopFactor).filter(StopFactor.code == body.code.strip(), StopFactor.id != sid).first():
+        raise Conflict("Стоп-фактор с таким кодом уже есть")
     changes = audit.diff(s, body.model_dump())
     audit.log(db, user, "Изменён стоп-фактор", "stop_factor", s.code, changes)
     db.commit()
@@ -174,6 +179,9 @@ def save_conditions(body: ConditionsIn, user: User = Depends(POLICY), db: Sessio
         for a, b in zip(rows, rows[1:]):
             if a.pdn_to != b.pdn_from:
                 raise DomainError(f"Класс {name}: интервалы ПДН должны идти подряд без пропусков")
+        if rows[-1].pdn_to < OPEN_PDN:
+            # иначе заявки с большим ПДН не найдут правила и молча получат отказ
+            raise DomainError(f"Класс {name}: последний интервал ПДН должен быть открытым (до ∞)")
     db.query(ConditionRule).delete()
     db.add_all(ConditionRule(**r.model_dump()) for r in body.rules)
     audit.log(db, user, "Изменена матрица условий кредитной политики", "conditions", "",
