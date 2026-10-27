@@ -2,7 +2,8 @@
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 
-from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.orm import Session, joinedload
 
 from ..errors import DomainError
 from ..models import (RECOMMENDATIONS, STATUSES, Application, Decision, Loan, MonitoringReport, ScoringModel,
@@ -24,12 +25,16 @@ def _bounds(date_from: date, date_to: date) -> tuple[datetime, datetime]:
     return datetime.combine(date_from, datetime.min.time()), datetime.combine(date_to, datetime.max.time())
 
 
-def _latest_scoring(db: Session, ids: list[int]) -> dict[int, ScoringResult]:
+def _latest_scoring(db: Session, ids: list[int]) -> dict:
+    """Класс риска и рекомендация последней оценки каждой заявки. Читаются только эти колонки:
+    признаки и факторы (JSON) отчётам не нужны, а на тысячах заявок их загрузка занимает секунды."""
     out = {}
     for i in range(0, len(ids), 500):
-        for sr in (db.query(ScoringResult).filter(ScoringResult.application_id.in_(ids[i:i + 500]))
-                   .order_by(ScoringResult.id).all()):
-            out[sr.application_id] = sr
+        last = (db.query(func.max(ScoringResult.id)).filter(ScoringResult.application_id.in_(ids[i:i + 500]))
+                .group_by(ScoringResult.application_id).scalar_subquery())
+        for row in (db.query(ScoringResult.application_id, ScoringResult.risk_class, ScoringResult.recommendation)
+                    .filter(ScoringResult.id.in_(last))):
+            out[row.application_id] = row
     return out
 
 
@@ -48,7 +53,8 @@ def build(db: Session, kind: str, date_from: date, date_to: date, masked: bool =
 
 
 def _applications(db, start, end, rep, masked):
-    apps = (db.query(Application).filter(Application.created_at >= start, Application.created_at <= end)
+    apps = (db.query(Application).options(joinedload(Application.client), joinedload(Application.product))
+            .filter(Application.created_at >= start, Application.created_at <= end)
             .order_by(Application.created_at).all())
     srs = _latest_scoring(db, [a.id for a in apps])
     by_status = Counter(a.status for a in apps)
