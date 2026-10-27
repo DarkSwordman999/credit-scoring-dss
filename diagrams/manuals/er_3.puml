@@ -1,0 +1,75 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+top to bottom direction
+hide circle
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor white
+}
+entity "scoring_results\n(Результаты оценки)" as scoring_results {
+  * id : INTEGER <<PK>>
+  --
+  * application_id : INTEGER <<FK>>
+    model_id : INTEGER <<FK>>
+  * created_at : TIMESTAMP
+    pd : FLOAT
+    score : FLOAT
+    risk_class : VARCHAR(1)
+    pdn : FLOAT
+  * stop_factors : JSON
+  * factors : JSON
+  * features : JSON
+  * recommendation : VARCHAR(20)
+    rec_amount : NUMERIC(14,2)
+    rec_term : INTEGER
+    rec_rate : FLOAT
+  * fallback : BOOLEAN
+  * duration_ms : INTEGER
+}
+entity "scoring_models\n(Версии методики)" as scoring_models {
+  * id : INTEGER <<PK>>
+  --
+  * version : INTEGER <<U>>
+  * name : VARCHAR(200)
+  * algorithm : VARCHAR(30)
+  * status : VARCHAR(20)
+  * params : JSON
+  * metrics : JSON
+  * comment : TEXT
+    created_by : INTEGER <<FK>>
+  * created_at : TIMESTAMP
+    approved_by : INTEGER <<FK>>
+    approved_at : TIMESTAMP
+    published_at : TIMESTAMP
+}
+entity "monitoring_reports\n(Мониторинг)" as monitoring_reports {
+  * id : INTEGER <<PK>>
+  --
+  * period : VARCHAR(7)
+  * model_id : INTEGER <<FK>>
+  * created_at : TIMESTAMP
+  * n_scored : INTEGER
+    psi : FLOAT
+  * n_matured : INTEGER
+    gini : FLOAT
+    gini_ref : FLOAT
+    default_rate : FLOAT
+  * alerts : JSON
+  * details : JSON
+}
+entity "applications\n(Заявки)" as applications {
+  * id : INTEGER <<PK>>
+}
+entity "users\n(Сотрудники)" as users {
+  * id : INTEGER <<PK>>
+}
+scoring_models |o--o{ scoring_results : model_id
+applications ||--o{ scoring_results
+users |o--o{ scoring_models : created_by
+users |o--o{ scoring_models : approved_by
+scoring_models ||--o{ monitoring_reports : model_id
+@enduml

@@ -1,0 +1,79 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+top to bottom direction
+hide circle
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor white
+}
+entity "users\n(Сотрудники)" as users {
+  * id : INTEGER <<PK>>
+  --
+  * login : VARCHAR(64) <<U>>
+  * full_name : VARCHAR(200)
+  * role : VARCHAR(32)
+    limit_amount : NUMERIC(14,2)
+  * password_hash : VARCHAR(200)
+  * active : BOOLEAN
+  * created_at : TIMESTAMP
+}
+entity "stop_factors\n(Стоп-факторы)" as stop_factors {
+  * id : INTEGER <<PK>>
+  --
+  * code : VARCHAR(20) <<U>>
+  * description : VARCHAR(300)
+  * rule : VARCHAR(30)
+    threshold : FLOAT
+  * active : BOOLEAN
+}
+entity "condition_rules\n(Матрица условий)" as condition_rules {
+  * id : INTEGER <<PK>>
+  --
+  * risk_class : VARCHAR(1)
+  * pdn_from : FLOAT
+  * pdn_to : FLOAT
+  * decision : VARCHAR(20)
+  * amount_factor : FLOAT
+  * rate_add : FLOAT
+}
+entity "stoplist\n(Стоп-лист)" as stoplist {
+  * id : INTEGER <<PK>>
+  --
+  * source : VARCHAR(20)
+  * passport_series : VARCHAR(4)
+  * passport_number : VARCHAR(6)
+  * full_name : VARCHAR(300)
+    birth_date : DATE
+  * reason : VARCHAR(300)
+  * created_at : TIMESTAMP
+}
+entity "app_settings\n(Параметры)" as app_settings {
+  * key : VARCHAR(50) <<PK>>
+  --
+    value : JSON
+}
+entity "audit_log\n(Журнал аудита)" as audit_log {
+  * id : INTEGER <<PK>>
+  --
+  * created_at : TIMESTAMP
+    user_id : INTEGER
+  * user_login : VARCHAR(64)
+  * action : VARCHAR(200)
+  * entity : VARCHAR(50)
+  * entity_id : VARCHAR(50)
+  * changes : JSON
+}
+entity "integration_log\n(Журнал обмена)" as integration_log {
+  * id : INTEGER <<PK>>
+  --
+  * created_at : TIMESTAMP
+  * system : VARCHAR(30)
+  * direction : VARCHAR(5)
+  * status : VARCHAR(10)
+  * message : TEXT
+}
+@enduml

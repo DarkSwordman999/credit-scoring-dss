@@ -1,0 +1,145 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+top to bottom direction
+hide circle
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor white
+}
+entity "clients\n(Клиенты)" as clients {
+  * id : INTEGER <<PK>>
+  --
+  * last_name : VARCHAR(100)
+  * first_name : VARCHAR(100)
+  * middle_name : VARCHAR(100)
+  * birth_date : DATE
+  * passport_series : VARCHAR(4)
+  * passport_number : VARCHAR(6)
+    passport_issued : DATE
+  * citizenship : VARCHAR(50)
+  * reg_address : VARCHAR(300)
+  * phone : VARCHAR(30)
+  * email : VARCHAR(120)
+  * created_at : TIMESTAMP
+}
+entity "employments\n(Занятость)" as employments {
+  * id : INTEGER <<PK>>
+  --
+  * client_id : INTEGER <<FK>>
+  * employment_type : VARCHAR(30)
+  * employer : VARCHAR(200)
+  * position : VARCHAR(200)
+  * experience_months : INTEGER
+  * income_confirmed : NUMERIC(14,2)
+  * created_at : TIMESTAMP
+}
+entity "products\n(Кредитные продукты)" as products {
+  * id : INTEGER <<PK>>
+  --
+  * name : VARCHAR(200) <<U>>
+  * min_amount : NUMERIC(14,2)
+  * max_amount : NUMERIC(14,2)
+  * min_term : INTEGER
+  * max_term : INTEGER
+  * base_rate : FLOAT
+  * active : BOOLEAN
+}
+entity "applications\n(Заявки)" as applications {
+  * id : INTEGER <<PK>>
+  --
+  * number : VARCHAR(30) <<U>>
+  * client_id : INTEGER <<FK>>
+  * product_id : INTEGER <<FK>>
+  * employment_id : INTEGER <<FK>>
+  * amount : NUMERIC(14,2)
+  * term_months : INTEGER
+  * purpose : VARCHAR(200)
+  * channel : VARCHAR(20)
+  * marital_status : VARCHAR(20)
+  * dependents : INTEGER
+  * education : VARCHAR(20)
+  * housing : VARCHAR(20)
+  * status : VARCHAR(20)
+    officer_id : INTEGER <<FK>>
+  * created_at : TIMESTAMP
+    registered_at : TIMESTAMP
+    decided_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+entity "consents\n(Согласия)" as consents {
+  * id : INTEGER <<PK>>
+  --
+  * application_id : INTEGER <<FK>>
+  * kind : VARCHAR(10)
+  * signed_at : DATE
+  * valid_until : DATE
+}
+entity "documents\n(Документы)" as documents {
+  * id : INTEGER <<PK>>
+  --
+  * application_id : INTEGER <<FK>>
+  * kind : VARCHAR(50)
+  * filename : VARCHAR(255)
+  * content_type : VARCHAR(100)
+  * size : INTEGER
+  * stored_name : VARCHAR(100)
+    uploaded_by : INTEGER <<FK>>
+  * uploaded_at : TIMESTAMP
+}
+entity "decisions\n(Решения)" as decisions {
+  * id : INTEGER <<PK>>
+  --
+  * application_id : INTEGER <<FK>>
+  * user_id : INTEGER <<FK>>
+  * stage : VARCHAR(20)
+  * recommendation : VARCHAR(20)
+  * outcome : VARCHAR(20)
+    amount : NUMERIC(14,2)
+    term_months : INTEGER
+    rate : FLOAT
+  * comment : TEXT
+  * created_at : TIMESTAMP
+}
+entity "loans\n(Кредиты)" as loans {
+  * id : INTEGER <<PK>>
+  --
+  * application_id : INTEGER <<FK,U>>
+  * contract_number : VARCHAR(40)
+  * issued_at : DATE
+  * amount : NUMERIC(14,2)
+  * term_months : INTEGER
+  * rate : FLOAT
+  * status : VARCHAR(20)
+  * max_dpd_12m : INTEGER
+  * updated_at : TIMESTAMP
+}
+entity "notifications\n(Уведомления)" as notifications {
+  * id : INTEGER <<PK>>
+  --
+  * application_id : INTEGER <<FK>>
+  * channel : VARCHAR(10)
+  * recipient : VARCHAR(120)
+  * text : TEXT
+  * status : VARCHAR(20)
+  * created_at : TIMESTAMP
+}
+entity "users\n(Сотрудники)" as users {
+  * id : INTEGER <<PK>>
+}
+clients ||--o{ employments
+products ||--o{ applications
+users |o--o{ applications : officer_id
+employments ||--o{ applications
+clients ||--o{ applications
+applications ||--o{ consents
+users |o--o{ documents : uploaded_by
+applications ||--o{ documents
+users ||--o{ decisions
+applications ||--o{ decisions
+applications ||--o{ loans
+applications ||--o{ notifications
+@enduml

@@ -1,0 +1,38 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide empty description
+state "Черновик" as draft
+state "Зарегистрирована" as registered
+state "Сбор данных" as collecting
+state "Скоринг" as scoring
+state "На рассмотрении" as review
+state "Требуются документы" as docs
+state "На кредитном комитете" as committee
+state "Одобрена" as approved
+state "Отклонена" as rejected
+state "Выдана" as issued
+state "Отказ клиента" as refused
+[*] --> draft
+draft --> registered : зарегистрировать\n[проверки С-1, С-2 пройдены]
+registered --> collecting : запросы в БКИ и АБС
+collecting --> collecting : повтор через 5 мин\n[внешняя система недоступна]
+collecting --> scoring : досье сформировано
+scoring --> review : оценка рассчитана
+review --> review : пересчитать оценку
+review --> docs : запросить документы
+docs --> review : документы получены
+review --> committee : сумма > лимита\nполномочий
+review --> approved : одобрить
+review --> rejected : отказать
+committee --> approved : одобрить
+committee --> rejected : отказать
+approved --> issued : кредит выдан
+approved --> refused : отказ клиента
+issued --> [*]
+rejected --> [*]
+refused --> [*]
+@enduml

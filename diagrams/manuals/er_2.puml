@@ -1,0 +1,73 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+top to bottom direction
+hide circle
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor white
+}
+entity "bki_requests\n(Запросы в БКИ)" as bki_requests {
+  * id : INTEGER <<PK>>
+  --
+  * application_id : INTEGER <<FK>>
+  * attempts : INTEGER
+  * status : VARCHAR(20)
+    next_attempt_at : TIMESTAMP
+  * message : VARCHAR(500)
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+entity "credit_reports\n(Кредитные отчёты)" as credit_reports {
+  * id : INTEGER <<PK>>
+  --
+  * application_id : INTEGER <<FK,U>>
+  * received_at : TIMESTAMP
+  * found : BOOLEAN
+  * loans_count : INTEGER
+  * active_loans : INTEGER
+  * total_debt : NUMERIC(14,2)
+  * monthly_payments : NUMERIC(14,2)
+  * max_dpd : INTEGER
+  * current_dpd : INTEGER
+  * dpd30_12m : INTEGER
+  * inquiries_6m : INTEGER
+  * history_months : INTEGER
+  * bankruptcy : BOOLEAN
+  * raw : JSON
+}
+entity "abs_data\n(Данные АБС)" as abs_data {
+  * id : INTEGER <<PK>>
+  --
+  * application_id : INTEGER <<FK,U>>
+  * received_at : TIMESTAMP
+  * is_client : BOOLEAN
+  * client_since_months : INTEGER
+  * salary_project : BOOLEAN
+  * salary_avg : NUMERIC(14,2)
+  * accounts_count : INTEGER
+  * deposits_balance : NUMERIC(14,2)
+  * bank_loans_count : INTEGER
+  * bank_monthly_payments : NUMERIC(14,2)
+  * raw : JSON
+}
+entity "verifications\n(Проверки)" as verifications {
+  * id : INTEGER <<PK>>
+  --
+  * application_id : INTEGER <<FK>>
+  * check : VARCHAR(30)
+  * passed : BOOLEAN
+  * message : VARCHAR(300)
+  * checked_at : TIMESTAMP
+}
+entity "applications\n(Заявки)" as applications {
+  * id : INTEGER <<PK>>
+}
+applications ||--o{ bki_requests
+applications ||--o{ credit_reports
+applications ||--o{ abs_data
+applications ||--o{ verifications
+@enduml

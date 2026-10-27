@@ -1,0 +1,33 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+node "АРМ сотрудника" as pc {
+  artifact "Веб-браузер" as br
+}
+node "Сервер приложений\n<<Linux, Docker Compose>>" as app {
+  component "proxy\n(Caddy, HTTPS)" as px
+  component "web\n(nginx, интерфейс React)" as web
+  component "api\n(FastAPI, creditdss)" as api
+  component "scoring\n(сервис скоринга)" as sc
+  component "scheduler\n(планировщик)" as sch
+  database "db\n(PostgreSQL 16)" as db
+  folder "том data\n(документы, копии)" as vol
+}
+node "БКИ" as bki
+node "АБС Банка" as abs
+node "Контроллер домена" as ldap
+br --> px : HTTPS 443
+px --> web : HTTP
+web --> api : /api
+api --> sc : REST, X-Service-Key
+api --> db : SQL
+sch --> db : SQL
+api --> vol
+sch --> vol
+api --> bki : HTTPS
+api --> abs : HTTPS
+api --> ldap : LDAP
+@enduml

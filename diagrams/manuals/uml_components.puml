@@ -1,0 +1,29 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+package "frontend (React, Ant Design)" {
+  [Страницы: заявки, заёмщики,\nпортфель, методика, отчёты,\nсправочники, администрирование] as ui
+}
+package "backend/creditdss" {
+  [api\n(REST-маршруты)] as api
+  [services\n(заявки, досье, методика,\nотчёты, резервные копии)] as srv
+  [scoring\n(признаки, стоп-факторы,\nскоринговая карта, метрики)] as sc
+  [scoring_service\n(отдельный сервис)] as ss
+  [models + db\n(SQLAlchemy, Alembic)] as m
+  [audit, security\n(журналы, JWT, роли)] as sec
+  [scheduler] as sch
+}
+database "БД" as db
+ui --> api : HTTP/JSON
+api --> srv
+api --> sec
+srv --> sc
+srv --> ss : REST
+ss --> sc
+srv --> m
+sch --> srv
+m --> db
+@enduml

@@ -1,0 +1,80 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+top to bottom direction
+hide circle
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor white
+}
+entity "abs_data\n(Данные АБС)" as abs_data {
+}
+entity "app_settings\n(Параметры)" as app_settings {
+}
+entity "applications\n(Заявки)" as applications {
+}
+entity "audit_log\n(Журнал аудита)" as audit_log {
+}
+entity "bki_requests\n(Запросы в БКИ)" as bki_requests {
+}
+entity "clients\n(Клиенты)" as clients {
+}
+entity "condition_rules\n(Матрица условий)" as condition_rules {
+}
+entity "consents\n(Согласия)" as consents {
+}
+entity "credit_reports\n(Кредитные отчёты)" as credit_reports {
+}
+entity "decisions\n(Решения)" as decisions {
+}
+entity "documents\n(Документы)" as documents {
+}
+entity "employments\n(Занятость)" as employments {
+}
+entity "integration_log\n(Журнал обмена)" as integration_log {
+}
+entity "loans\n(Кредиты)" as loans {
+}
+entity "monitoring_reports\n(Мониторинг)" as monitoring_reports {
+}
+entity "notifications\n(Уведомления)" as notifications {
+}
+entity "products\n(Кредитные продукты)" as products {
+}
+entity "scoring_models\n(Версии методики)" as scoring_models {
+}
+entity "scoring_results\n(Результаты оценки)" as scoring_results {
+}
+entity "stop_factors\n(Стоп-факторы)" as stop_factors {
+}
+entity "stoplist\n(Стоп-лист)" as stoplist {
+}
+entity "users\n(Сотрудники)" as users {
+}
+entity "verifications\n(Проверки)" as verifications {
+}
+applications ||--o{ abs_data
+products ||--o{ applications
+users |o--o{ applications
+employments ||--o{ applications
+clients ||--o{ applications
+applications ||--o{ bki_requests
+applications ||--o{ consents
+applications ||--o{ credit_reports
+users ||--o{ decisions
+applications ||--o{ decisions
+users |o--o{ documents
+applications ||--o{ documents
+clients ||--o{ employments
+applications ||--o{ loans
+scoring_models ||--o{ monitoring_reports
+applications ||--o{ notifications
+users |o--o{ scoring_models : created_by
+users |o--o{ scoring_models : approved_by
+scoring_models |o--o{ scoring_results
+applications ||--o{ scoring_results
+applications ||--o{ verifications
+@enduml
