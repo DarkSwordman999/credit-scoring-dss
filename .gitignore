@@ -17,3 +17,4 @@ release/
 .env
 # рабочие файлы генератора руководств
 tools/report_generator/_out/
+tools/report_generator/.pngopt.json
