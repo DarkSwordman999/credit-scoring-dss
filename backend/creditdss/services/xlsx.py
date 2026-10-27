@@ -6,7 +6,7 @@ from urllib.parse import quote
 
 from fastapi.responses import Response
 from openpyxl import Workbook
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.styles import Alignment, Border, Font, NamedStyle, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 THIN = Side(style="thin", color="999999")
@@ -14,9 +14,33 @@ _BAD_SHEET = re.compile(r"[\[\]:*?/\\]")           # недопустимы в �
 _BAD_FILE = re.compile(r'[<>:"/\\|?*\x00-\x1f]')   # недопустимы в имени файла Windows
 
 
+def _register_styles(wb: Workbook) -> None:
+    """Стили ячеек таблицы регистрируются один раз и назначаются по имени: создание своих объектов рамки
+    и формата для каждой ячейки на тысячах строк занимает десятки секунд."""
+    border = Border(top=THIN, bottom=THIN, left=THIN, right=THIN)
+    for name, fmt in (("cell", "General"), ("cell_num", "#,##0.00"), ("cell_dt", "DD.MM.YYYY HH:MM"),
+                      ("cell_d", "DD.MM.YYYY")):
+        wb.add_named_style(NamedStyle(name=name, border=border, number_format=fmt))
+
+
+def _style_rows(ws, min_row: int, numbers: bool) -> None:
+    for row in ws.iter_rows(min_row=min_row, max_row=ws.max_row):
+        for c in row:
+            v = c.value
+            if isinstance(v, datetime):
+                c.style = "cell_dt"
+            elif isinstance(v, date):
+                c.style = "cell_d"
+            elif numbers and isinstance(v, float):
+                c.style = "cell_num"
+            else:
+                c.style = "cell"
+
+
 def build(title: str, headers: list[str], rows: list[list], meta: list[tuple[str, str]] | None = None,
           sheet: str = "Отчёт", footer: list[str] | None = None) -> bytes:
     wb = Workbook()
+    _register_styles(wb)
     ws = wb.active
     ws.title = _BAD_SHEET.sub("-", sheet)[:31] or "Отчёт"
     ws.append([title])
@@ -33,13 +57,7 @@ def build(title: str, headers: list[str], rows: list[list], meta: list[tuple[str
         c.border = Border(top=THIN, bottom=THIN, left=THIN, right=THIN)
     for r in rows:
         ws.append([_cell(v) for v in r])
-    for row in ws.iter_rows(min_row=head_row + 1, max_row=ws.max_row):
-        for c in row:
-            c.border = Border(top=THIN, bottom=THIN, left=THIN, right=THIN)
-            if isinstance(c.value, float):
-                c.number_format = "#,##0.00"
-            elif isinstance(c.value, (date, datetime)):
-                c.number_format = "DD.MM.YYYY HH:MM" if isinstance(c.value, datetime) else "DD.MM.YYYY"
+    _style_rows(ws, head_row + 1, numbers=True)
     for line in footer or []:
         ws.append([])
         ws.append([line])
@@ -68,6 +86,7 @@ def build_tables(title: str, meta: list[tuple[str, str]], summary: list[tuple[st
                  tables: list[dict]) -> bytes:
     """Отчёт из нескольких таблиц: первый лист — параметры и итоги, далее лист на каждую таблицу."""
     wb = Workbook()
+    _register_styles(wb)
     ws = wb.active
     ws.title = "Итоги"
     ws.append([title])
@@ -91,13 +110,7 @@ def build_tables(title: str, meta: list[tuple[str, str]], summary: list[tuple[st
             c.border = Border(top=THIN, bottom=THIN, left=THIN, right=THIN)
         for r in t["rows"]:
             sh.append([_cell(v) for v in r])
-        for row in sh.iter_rows(min_row=2, max_row=sh.max_row):
-            for c in row:
-                c.border = Border(top=THIN, bottom=THIN, left=THIN, right=THIN)
-                if isinstance(c.value, datetime):
-                    c.number_format = "DD.MM.YYYY HH:MM"
-                elif isinstance(c.value, date):
-                    c.number_format = "DD.MM.YYYY"
+        _style_rows(sh, 2, numbers=False)
         for i, h in enumerate(t["headers"], start=1):
             width = max([len(str(h))] + [len(str(r[i - 1])) for r in t["rows"][:300] if len(r) >= i])
             sh.column_dimensions[get_column_letter(i)].width = min(max(10, width + 2), 60)
