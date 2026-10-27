@@ -8,6 +8,8 @@ from fpdf import FPDF
 from fpdf.fonts import FontFace
 
 FONTS = Path(__file__).resolve().parent.parent / "fonts"
+MAX_ROWS = 3000       # строк одной таблицы в PDF; полностью — в выгрузке XLSX
+LONG_TABLE = 150      # с этого числа строк таблица выводится построчно, без переноса текста
 
 
 def _fmt(v) -> str:
@@ -49,12 +51,54 @@ def build(title: str, meta: list[tuple[str, str]], tables: list[dict]) -> bytes:
             continue
         pdf.set_font("DejaVu", "", 8)
         widths = _widths(t["headers"], t["rows"])
-        with pdf.table(col_widths=widths, headings_style=FontFace(emphasis="BOLD", fill_color=(227, 234, 244)),
-                       line_height=4.5, text_align="LEFT") as table:
-            table.row([str(h) for h in t["headers"]])
-            for r in t["rows"][:3000]:
-                table.row([_fmt(v) for v in r])
+        rows = t["rows"][:MAX_ROWS]
+        if len(rows) > LONG_TABLE:
+            _fast_table(pdf, t["headers"], rows, widths)
+        else:
+            with pdf.table(col_widths=widths, headings_style=FontFace(emphasis="BOLD", fill_color=(227, 234, 244)),
+                           line_height=4.5, text_align="LEFT") as table:
+                table.row([str(h) for h in t["headers"]])
+                for r in rows:
+                    table.row([_fmt(v) for v in r])
+        if len(t["rows"]) > MAX_ROWS:
+            pdf.set_font("DejaVu", "", 8)
+            pdf.cell(0, 5, f"Показаны первые {MAX_ROWS} строк из {len(t['rows'])}; полностью таблица есть "
+                           f"в выгрузке XLSX", new_x="LMARGIN", new_y="NEXT")
     return bytes(pdf.output())
+
+
+def _fit(pdf: FPDF, text: str, width: float) -> str:
+    """Текст, обрезанный многоточием по ширине колонки."""
+    if pdf.get_string_width(text) <= width:
+        return text
+    while text and pdf.get_string_width(text + "…") > width:
+        text = text[:-1]
+    return text + "…"
+
+
+def _fast_table(pdf: FPDF, headers: list, rows: list, widths: tuple) -> None:
+    """Длинная таблица построчно, без переноса текста в ячейках: табличный вывод fpdf2 раскладывает каждую
+    ячейку и на тысячах строк работает десятки секунд. Шапка повторяется на каждой странице."""
+    scale = pdf.epw / sum(widths)
+    cols = [w * scale for w in widths]
+    h = 4.5
+
+    def head():
+        pdf.set_font("DejaVu", "B", 8)
+        pdf.set_fill_color(227, 234, 244)
+        for w, title in zip(cols, headers):
+            pdf.cell(w, h + 1, _fit(pdf, str(title), w - 1), border=1, fill=True)
+        pdf.ln()
+        pdf.set_font("DejaVu", "", 8)
+
+    head()
+    for r in rows:
+        if pdf.will_page_break(h):
+            pdf.add_page()
+            head()
+        for w, v in zip(cols, r):
+            pdf.cell(w, h, _fit(pdf, _fmt(v), w - 1), border=1)
+        pdf.ln()
 
 
 def _widths(headers, rows) -> tuple:
