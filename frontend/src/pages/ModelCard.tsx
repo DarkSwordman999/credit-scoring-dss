@@ -195,6 +195,38 @@ export default function ModelCard() {
                   <Alert type="error" showIcon style={{ marginTop: 8 }} message="Gini ниже, чем у действующей версии: публикация запрещена" />
                 )}
                 {met.auc < 0.75 && <Alert type="warning" showIcon style={{ marginTop: 8 }} message="ROC AUC ниже 0,75 — требование ТЗ не выполняется" />}
+                {met.calibration && (
+                  <>
+                    <Typography.Title level={5} style={{ marginTop: 16 }}>Калибровка: прогноз и факт</Typography.Title>
+                    <Typography.Paragraph type="secondary" style={{ marginBottom: 8 }}>
+                      ROC AUC и Gini показывают, насколько верно упорядочены заёмщики. Совпадает ли сама PD с долей
+                      дефолтов, видно здесь. Средняя PD {pct(met.pd_mean)} при фактической доле {pct(met.default_rate)};
+                      показатель Брайера {num(met.brier, 4)}.
+                    </Typography.Paragraph>
+                    <Table size="small" pagination={false} rowKey="risk_class" dataSource={met.calibration}
+                           columns={[
+                             { title: "Класс", dataIndex: "risk_class" },
+                             { title: "Кредитов", dataIndex: "n", align: "right" },
+                             { title: "PD, прогноз", dataIndex: "pd_mean", align: "right", render: (v) => (v == null ? "—" : pct(v)) },
+                             { title: "Дефолтов, факт", dataIndex: "default_rate", align: "right", render: (v) => (v == null ? "—" : pct(v)) },
+                             { title: "", dataIndex: "deviates", render: (v) => (v ? <Tag color="orange">расходится</Tag> : null) },
+                           ]} />
+                    {met.calibration.some((c: any) => c.deviates) && met.suggested_base_odds && (
+                      <Alert type="warning" showIcon style={{ marginTop: 8 }}
+                             message={`Прогноз расходится с фактом. Чтобы средняя PD совпала с долей дефолтов, установите базовые шансы ${num(met.suggested_base_odds, 2)}:1 (сейчас ${params.base_odds}:1). Порядок заёмщиков и ROC AUC при этом не изменятся.`}
+                             action={editable ? (
+                               <Button size="small" onClick={() => {
+                                 setParams({ ...params, base_odds: met.suggested_base_odds });
+                                 setDirty(true);
+                               }}>Установить</Button>
+                             ) : undefined} />
+                    )}
+                    <Typography.Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 0 }}>
+                      Если в системе загружены демонстрационные данные, они синтетические: проверка показывает, как
+                      работает механизм, а не качество методики на реальных заёмщиках.
+                    </Typography.Paragraph>
+                  </>
+                )}
               </>
             )}
           </Card>
