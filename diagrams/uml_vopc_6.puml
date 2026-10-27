@@ -1,0 +1,92 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class КарточкаЗаявки <<boundary>> {
+ +открытьЗаявкуОчереди()
+ +пересчитатьОценку()
+ +выбратьРешение()
+}
+class КонтроллерРешений <<control>> {
+ +карточка(заявка)
+ +пересчитать(заявка)
+ +решить(заявка, решение)
+ -проверитьУсловия()
+ -отличаетсяОтРекомендации()
+}
+class РезультатСкоринга <<entity>> {
+ {field} pd: дробное
+ {field} score: дробное
+ {field} risk_class: строка(1)
+ {field} pdn: дробное
+ {field} stop_factors: JSON
+ {field} factors: JSON
+ --
+ +последний(заявка)
+}
+class Решение <<entity>> {
+ {field} stage: строка(20)
+ {field} recommendation: строка(20)
+ {field} outcome: строка(20)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} rate: дробное
+ --
+ +создать(...)
+}
+class Сотрудник <<entity>> {
+ {field} login: строка(64)
+ {field} full_name: строка(200)
+ {field} role: строка(32)
+ {field} limit_amount: деньги
+ {field} active: логическое
+ --
+ +лимитПолномочий()
+}
+class Заявка <<entity>> {
+ {field} number: строка(30)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} purpose: строка(200)
+ {field} channel: строка(20)
+ {field} marital_status: строка(20)
+ --
+ +setСтатус(...)
+}
+class Уведомитель <<control>> {
+ +уведомитьКлиента(заявка, решение)
+}
+class Уведомление <<entity>> {
+ {field} channel: строка(10)
+ {field} recipient: строка(120)
+ {field} text: текст
+ {field} status: строка(20)
+ --
+ +создать(SMS или e-mail, текст)
+}
+class ЖурналАудита <<entity>> {
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+ --
+ +записать(решение, было → стало)
+}
+КарточкаЗаявки --> КонтроллерРешений
+КонтроллерРешений --> РезультатСкоринга
+КонтроллерРешений --> Сотрудник
+КонтроллерРешений --> Решение
+КонтроллерРешений --> Заявка
+КонтроллерРешений --> Уведомитель
+Уведомитель --> Уведомление
+КонтроллерРешений --> ЖурналАудита
+Сотрудник "1" -- "0..*" Заявка
+Заявка "1" -- "0..*" РезультатСкоринга
+Заявка "1" -- "0..*" Решение
+Сотрудник "1" -- "0..*" Решение
+Заявка "1" -- "0..*" Уведомление
+@enduml

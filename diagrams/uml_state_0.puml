@@ -1,0 +1,48 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide empty description
+state "Черновик" as draft
+state "Зарегистрирована" as registered
+state "Сбор данных" as collecting
+state "Скоринг" as scoring {
+  state "Проверка стоп-факторов" as sf
+  state "Расчёт балла и PD" as pd
+  state "Формирование рекомендации" as rec
+  [*] --> sf
+  sf --> pd : нет стоп-факторов
+  sf --> rec : стоп-фактор
+  pd --> rec
+  rec --> [*]
+}
+state "На рассмотрении" as review
+state "Требуются документы" as docs
+state "На кредитном комитете" as committee
+state "Одобрена" as approved
+state "Отклонена" as rejected
+state "Выдана" as issued
+state "Отказ клиента" as refused
+[*] --> draft : создать
+draft --> draft : изменить анкету
+draft --> registered : зарегистрировать\n[проверки С-1, С-2 пройдены]
+registered --> collecting : запросы в БКИ и АБС
+collecting --> collecting : повтор через 5 мин\n[БКИ или АБС недоступны]
+collecting --> scoring : досье сформировано
+scoring --> review : оценка рассчитана
+review --> review : пересчитать оценку
+review --> docs : запросить документы
+docs --> review : документы получены /\nпересчёт оценки
+review --> committee : сумма > лимита полномочий
+review --> approved : одобрить
+review --> rejected : отказать
+committee --> approved : одобрить
+committee --> rejected : отказать
+approved --> issued : кредит выдан\n[АБС вернула договор]
+approved --> refused : отказ клиента
+issued --> [*]
+rejected --> [*]
+refused --> [*]
+@enduml

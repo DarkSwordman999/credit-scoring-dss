@@ -1,0 +1,94 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class КонтроллерЗаявок <<control>>
+class СервисДосье <<control>> {
+ +собрать(заявка)
+ -выполнитьСкоринг(заявка)
+}
+class АдаптерБКИ <<control>> {
+ +запроситьОтчёт(субъект, согласие)
+}
+class АдаптерАБС <<control>> {
+ +запроситьДанные(субъект)
+}
+class СервисПроверок <<control>> {
+ +проверить(субъект, стоп-лист)
+}
+class ЗаписьСтопЛиста <<entity>> {
+ {field} source: строка(20)
+ {field} passport_series: строка(4)
+ {field} passport_number: строка(6)
+ {field} full_name: строка(300)
+ {field} birth_date: дата
+ {field} reason: строка(300)
+ --
+ +выбратьВсе()
+}
+class Проверка <<entity>> {
+ {field} check: строка(30)
+ {field} passed: логическое
+ {field} message: строка(300)
+ {field} checked_at: дата и время
+ --
+ +сохранить(...)
+}
+class КредитныйОтчёт <<entity>> {
+ {field} received_at: дата и время
+ {field} found: логическое
+ {field} loans_count: целое
+ {field} active_loans: целое
+ {field} total_debt: деньги
+ {field} monthly_payments: деньги
+ --
+ +сохранить(отчёт)
+}
+class ДанныеАБС <<entity>> {
+ {field} received_at: дата и время
+ {field} is_client: логическое
+ {field} client_since_months: целое
+ {field} salary_project: логическое
+ {field} salary_avg: деньги
+ {field} accounts_count: целое
+ --
+ +сохранить(данные АБС)
+}
+class ЗапросБКИ <<entity>> {
+ {field} attempts: целое
+ {field} status: строка(20)
+ {field} next_attempt_at: дата и время
+ {field} message: строка(500)
+ --
+ +увеличитьПопытки()
+ +setСтатус(ok)
+}
+class Заявка <<entity>> {
+ {field} number: строка(30)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} purpose: строка(200)
+ {field} channel: строка(20)
+ {field} marital_status: строка(20)
+ --
+ +setСтатус(...)
+}
+КонтроллерЗаявок --> СервисДосье
+СервисДосье --> Заявка
+СервисДосье --> АдаптерБКИ
+СервисДосье --> АдаптерАБС
+СервисДосье --> СервисПроверок
+СервисПроверок --> ЗаписьСтопЛиста
+СервисДосье --> Проверка
+СервисДосье --> ЗапросБКИ
+СервисДосье --> КредитныйОтчёт
+СервисДосье --> ДанныеАБС
+Заявка "1" -- "0..*" ЗапросБКИ
+Заявка "1" -- "0..1" КредитныйОтчёт
+Заявка "1" -- "0..1" ДанныеАБС
+Заявка "1" -- "0..*" Проверка
+@enduml

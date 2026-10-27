@@ -1,0 +1,33 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+start
+:Статус «Сбор данных»;
+fork
+  :Запрос кредитного отчёта в БКИ;
+fork again
+  :Запрос сведений о клиенте в АБС;
+fork again
+  :Проверка паспорта, стоп-листа
+  и перечня Росфинмониторинга;
+end fork
+:Сохранить результаты проверок;
+if (БКИ и АБС ответили?) then (да)
+  :Сохранить отчёт БКИ и данные АБС;
+  :Статус «Скоринг»;
+  :Выполнить скоринг заявки;
+  :Статус «На рассмотрении»;
+else (нет)
+  :Попытка = попытка + 1;
+  if (Попыток меньше 3?) then (да)
+    :Назначить повтор через 5 минут;
+  else (нет)
+    :Статус запроса «failed»:
+    повтор вручную;
+  endif
+endif
+stop
+@enduml

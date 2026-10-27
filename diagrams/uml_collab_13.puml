@@ -1,0 +1,29 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+skinparam rectangle {
+ BorderColor black
+}
+actor "Руководитель отдела" as HD
+rectangle ":ЭкранОтчётов\n«boundary»" as UI
+rectangle ":СервисОтчётов\n«control»" as S
+rectangle ":Заявка\n«entity»" as AP
+rectangle ":Решение\n«entity»" as D
+rectangle ":РезультатСкоринга\n«entity»" as R
+rectangle ":Кредит\n«entity»" as LN
+rectangle ":ОтчётМониторинга\n«entity»" as MR
+rectangle ":ВыгрузкаXLSX_PDF\n«control»" as X
+HD -- UI : "1: выбрать вид отчёта и период ↓\n10: выгрузить в XLSX или PDF ↓"
+UI -- S : "2: сформировать(вид, с, по) ↓\n9: таблицы отчёта ↑\n11: сформировать(вид, с, по,\nформат) ↓"
+S -- AP : "3: [вид = заявки]\nвыбрать(период) [по статусам и\nканалам] ↓"
+S -- D : "4: [вид = решения]\nвыбрать(период) [уровень\nодобрения] ↓"
+S -- LN : "5: [вид = портфель]\nвыбрать(период) [просрочка,\nдефолты] ↓"
+S -- R : "6: [вид = портфель]\nвыбрать(кредиты) [класс риска\nпри выдаче] ↓"
+S -- MR : "7: [вид = методика]\nвыбрать(период) [PSI и Gini по\nмесяцам] ↓"
+S -- S : "8: агрегировать(), итоги()"
+S -- X : "12: построитьФайл(отчёт, формат)\n↓"
+UI -- X : "13: файл отчёта ↑"
+@enduml

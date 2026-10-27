@@ -1,0 +1,23 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide empty description
+state "Кандидат" as candidate
+state "На утверждении" as approval
+state "Утверждена" as approved
+state "Отклонена" as rejected
+state "Опубликована" as published
+state "В архиве" as archived
+[*] --> candidate : создать на основе\nсуществующей
+candidate --> candidate : изменить баллы /\nпроверить на истории
+candidate --> approval : отправить\n[метрики есть, Gini не ниже]
+approval --> approved : утвердить
+approval --> rejected : отклонить [причина]
+approved --> published : опубликовать
+published --> archived : опубликована\nдругая версия
+archived --> published : откат\n[ранее публиковалась]
+rejected --> [*]
+@enduml

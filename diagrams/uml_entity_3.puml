@@ -1,0 +1,46 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+class Сотрудник <<entity>> {
+ {field} login: строка(64)
+ {field} full_name: строка(200)
+ {field} role: строка(32)
+ {field} limit_amount: деньги
+ {field} password_hash: строка(200)
+ {field} active: логическое
+ {field} created_at: дата и время
+}
+class ЗаписьСтопЛиста <<entity>> {
+ {field} source: строка(20)
+ {field} passport_series: строка(4)
+ {field} passport_number: строка(6)
+ {field} full_name: строка(300)
+ {field} birth_date: дата
+ {field} reason: строка(300)
+ {field} created_at: дата и время
+}
+class Параметр <<entity>> {
+ {field} key: строка(50)
+ {field} value: JSON
+}
+class ЖурналАудита <<entity>> {
+ {field} created_at: дата и время
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+}
+class ЖурналОбмена <<entity>> {
+ {field} created_at: дата и время
+ {field} system: строка(30)
+ {field} direction: строка(5)
+ {field} status: строка(10)
+ {field} message: текст
+}
+@enduml

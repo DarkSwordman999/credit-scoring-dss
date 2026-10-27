@@ -1,0 +1,30 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+left to right direction
+actor "Риск-аналитик" as RA
+actor "Руководитель\nотдела" as HD
+actor "Время" as TM
+actor "АБС" as ABS <<system>>
+rectangle "Методика оценки" {
+  usecase "Подготовить и проверить\nверсию методики" as U10
+  usecase "Утвердить и опубликовать\nверсию методики" as U11
+  usecase "Откатиться на\nархивную версию" as U11a
+  usecase "Мониторить качество\nметодики" as U12
+  usecase "Принять сведения\nоб обслуживании кредитов" as U13
+  usecase "Настроить стоп-факторы,\nклассы риска и матрицу" as U16a
+}
+RA --> U10
+RA --> U11
+HD --> U11
+RA --> U11a
+RA --> U12
+TM --> U12
+RA --> U16a
+ABS --> U13
+U11a .> U11 : <<extend>>
+U10 ..> U13 : данные созревших\nкредитов
+@enduml

@@ -1,0 +1,34 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+actor "Время" as TM
+control "ПланировщикЗадач" as SCH
+control "СервисРезервногоКопирования" as B
+participant "СУБД" as DB
+participant "Каталог data/backup" as FS
+actor "Администратор" as AD
+boundary "ЭкранАдминистрирования" as UI
+entity "ЖурналАудита" as AU
+TM -> SCH : резервнаяКопия() [ежедневно в 02:00]
+SCH -> B : создатьКопию()
+alt SQLite
+  B -> DB : backup API (без остановки работы)
+else PostgreSQL
+  B -> DB : pg_dump (не более 4 часов)
+end
+B -> FS : сохранить файл копии
+B -> FS : удалить копии старше 14 последних
+AD -> UI : создать копию сейчас
+UI -> B : создатьКопию()
+B -> AU : записать(резервная копия)
+AD -> UI : скачать копию
+UI -> B : файлКопии(имя)
+B --> UI : файл
+AD -> B : восстановить(файл) [команда creditdss restore]
+B -> B : страховочнаяКопия() текущей БД
+B -> DB : восстановить из файла
+B --> AD : БД восстановлена, путь страховочной копии
+@enduml

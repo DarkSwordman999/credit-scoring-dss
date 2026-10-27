@@ -1,0 +1,40 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+actor "Кредитный специалист" as KS
+boundary "КарточкаЗаявки" as UI
+control "КонтроллерЗаявок" as C
+entity "Решение" as D
+control "АдаптерАБС" as AA
+participant "АБС" as ABS
+entity "Кредит" as LN
+entity "Заявка" as AP
+entity "ЖурналОбмена" as IL
+entity "ЖурналАудита" as AU
+alt клиент подписал договор
+  KS -> UI : кредит выдан
+  UI -> C : выдать(заявка)
+  C -> D : последнееОдобрение(заявка)
+  C -> AA : передатьОдобренную(номер, сумма, срок, ставка)
+  AA -> ABS : заявка на оформление договора
+  alt АБС недоступна
+    AA --> C : ошибка
+    C -> IL : записать(ошибка АБС)
+    C --> UI : 503 «Не удалось передать заявку в АБС»
+  else договор оформлен
+    ABS --> AA : номер договора
+    C -> LN : создать(договор, дата выдачи, сумма, срок, ставка)
+    C -> AP : setСтатус(Выдана)
+    C -> AU : записать(кредит выдан)
+    C --> UI : кредит выдан
+  end
+else клиент отказался
+  KS -> UI : отказ клиента, комментарий
+  UI -> C : отказКлиента(заявка, комментарий)
+  C -> AP : setСтатус(Отказ клиента)
+  C -> AU : записать(отказ клиента)
+end
+@enduml

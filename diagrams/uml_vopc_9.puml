@@ -1,0 +1,70 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class ЭкранМетодики <<boundary>> {
+ +создатьВерсиюОснове()
+ +изменитьБаллыХарактеристик()
+ +проверитьИстории()
+}
+class СервисМетодики <<control>> {
+ +создатьКандидата(исходная)
+ +изменитьКандидата(версия, параметры)
+ -проверитьПараметры()
+ +проверить(версия, период)
+}
+class ВерсияМетодики <<entity>> {
+ {field} version: целое
+ {field} name: строка(200)
+ {field} algorithm: строка(30)
+ {field} status: строка(20)
+ {field} params: JSON
+ {field} metrics: JSON
+ --
+ +создать(...)
+ +setПараметры()
+ +setМетрики()
+}
+class Кредит <<entity>> {
+ {field} contract_number: строка(40)
+ {field} issued_at: дата
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} rate: дробное
+ {field} status: строка(20)
+ --
+ +созревшие(период)
+}
+class РезультатСкоринга <<entity>> {
+ {field} pd: дробное
+ {field} score: дробное
+ {field} risk_class: строка(1)
+ {field} pdn: дробное
+ {field} stop_factors: JSON
+ {field} factors: JSON
+ --
+ +признакиПриВыдаче(кредиты)
+}
+class РасчётМетрик <<control>> {
+ +метрики(кандидат, действующая)
+}
+class ЖурналАудита <<entity>> {
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+ --
+ +записать(проверка версии)
+}
+ЭкранМетодики --> СервисМетодики
+СервисМетодики --> ВерсияМетодики
+СервисМетодики --> Кредит
+СервисМетодики --> РезультатСкоринга
+СервисМетодики --> РасчётМетрик
+СервисМетодики --> ЖурналАудита
+ВерсияМетодики "1" -- "0..*" РезультатСкоринга
+@enduml

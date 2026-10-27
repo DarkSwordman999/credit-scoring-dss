@@ -1,0 +1,82 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class СервисДосье <<control>>
+class КлиентСкоринга <<control>> {
+ +оценить(заявка)
+ -оценитьРезервнойМетодикой()
+}
+class СервисСкоринга <<control>> {
+ +оценить(заявка)
+ -отказатьПоСтопФактору()
+ -рассчитатьPD(балл)
+ -рассчитатьПДН()
+ -определитьКлассРиска(PD)
+ -сформироватьРекомендацию()
+}
+class ПостроительДосье <<control>> {
+ +построить(заявка)
+}
+class ПроверкаСтопФакторов <<control>> {
+ +проверить(досье, стоп-факторы)
+}
+class СкоринговаяКарта <<control>> {
+ +баллы(признаки, параметры версии)
+}
+class ВерсияМетодики <<entity>> {
+ {field} version: целое
+ {field} name: строка(200)
+ {field} algorithm: строка(30)
+ {field} status: строка(20)
+ {field} params: JSON
+ {field} metrics: JSON
+ --
+ +опубликованная()
+}
+class ПравилоУсловий <<entity>> {
+ {field} risk_class: строка(1)
+ {field} pdn_from: дробное
+ {field} pdn_to: дробное
+ {field} decision: строка(20)
+ {field} amount_factor: дробное
+ {field} rate_add: дробное
+ --
+ +условия(класс, ПДН)
+}
+class РезультатСкоринга <<entity>> {
+ {field} pd: дробное
+ {field} score: дробное
+ {field} risk_class: строка(1)
+ {field} pdn: дробное
+ {field} stop_factors: JSON
+ {field} factors: JSON
+ --
+ +создать(результат, версия методики)
+}
+class Заявка <<entity>> {
+ {field} number: строка(30)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} purpose: строка(200)
+ {field} channel: строка(20)
+ {field} marital_status: строка(20)
+ --
+ +setСтатус(На рассмотрении)
+}
+СервисДосье --> КлиентСкоринга
+КлиентСкоринга --> СервисСкоринга
+СервисСкоринга --> ПостроительДосье
+СервисСкоринга --> ВерсияМетодики
+СервисСкоринга --> ПроверкаСтопФакторов
+СервисСкоринга --> СкоринговаяКарта
+СервисСкоринга --> ПравилоУсловий
+СервисДосье --> РезультатСкоринга
+СервисДосье --> Заявка
+Заявка "1" -- "0..*" РезультатСкоринга
+ВерсияМетодики "1" -- "0..*" РезультатСкоринга
+@enduml

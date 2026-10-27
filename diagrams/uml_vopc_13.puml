@@ -1,0 +1,36 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class ШлюзАБС <<boundary>> {
+ +принятьСведения(пакет)
+ -проверитьКлюч()
+ -добавитьВНенайденные()
+}
+class Кредит <<entity>> {
+ {field} contract_number: строка(40)
+ {field} issued_at: дата
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} rate: дробное
+ {field} status: строка(20)
+ --
+ +найти(номер договора)
+ +setСостояние(active / closed / default)
+ +setМаксПросрочка(значение)
+}
+class ЖурналОбмена <<entity>> {
+ {field} system: строка(30)
+ {field} direction: строка(5)
+ {field} status: строка(10)
+ {field} message: текст
+ --
+ +записать(обновлено N, не найдено M)
+}
+ШлюзАБС --> Кредит
+ШлюзАБС --> ЖурналОбмена
+@enduml

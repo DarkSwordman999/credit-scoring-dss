@@ -1,0 +1,34 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+actor "Руководитель отдела" as HD
+boundary "ЭкранОтчётов" as UI
+control "СервисОтчётов" as S
+entity "Заявка" as AP
+entity "Решение" as D
+entity "РезультатСкоринга" as R
+entity "Кредит" as LN
+entity "ОтчётМониторинга" as MR
+control "ВыгрузкаXLSX_PDF" as X
+HD -> UI : выбрать вид отчёта и период
+UI -> S : сформировать(вид, с, по)
+alt вид = заявки
+  S -> AP : выбрать(период) [по статусам и каналам]
+else вид = решения
+  S -> D : выбрать(период) [уровень одобрения]
+else вид = портфель
+  S -> LN : выбрать(период) [просрочка, дефолты]
+  S -> R : выбрать(кредиты) [класс риска при выдаче]
+else вид = методика
+  S -> MR : выбрать(период) [PSI и Gini по месяцам]
+end
+S -> S : агрегировать(), итоги()
+S --> UI : таблицы отчёта
+HD -> UI : выгрузить в XLSX или PDF
+UI -> S : сформировать(вид, с, по, формат)
+S -> X : построитьФайл(отчёт, формат)
+X --> UI : файл отчёта
+@enduml

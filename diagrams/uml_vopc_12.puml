@@ -1,0 +1,74 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class ПланировщикЗадач <<control>> {
+ +мониторингМетодики()
+}
+class СервисМетодики <<control>> {
+ +мониторинг(...)
+ -сравнитьСПорогами()
+ +историяМониторинга()
+}
+class ВерсияМетодики <<entity>> {
+ {field} version: целое
+ {field} name: строка(200)
+ {field} algorithm: строка(30)
+ {field} status: строка(20)
+ {field} params: JSON
+ {field} metrics: JSON
+ --
+ +опубликованная()
+}
+class РезультатСкоринга <<entity>> {
+ {field} pd: дробное
+ {field} score: дробное
+ {field} risk_class: строка(1)
+ {field} pdn: дробное
+ {field} stop_factors: JSON
+ {field} factors: JSON
+ --
+ +выбрать(месяц)
+}
+class Кредит <<entity>> {
+ {field} contract_number: строка(40)
+ {field} issued_at: дата
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} rate: дробное
+ {field} status: строка(20)
+ --
+ +созревшие(конец месяца)
+}
+class РасчётМетрик <<control>> {
+ +PSI(оценки, эталон)
+ +Gini(созревшие кредиты)
+}
+class ОтчётМониторинга <<entity>> {
+ {field} period: строка(7)
+ {field} n_scored: целое
+ {field} psi: дробное
+ {field} n_matured: целое
+ {field} gini: дробное
+ {field} gini_ref: дробное
+ --
+ +создать(...)
+}
+class ЭкранМетодики <<boundary>> {
+ +открытьМониторинг()
+ +рассчитатьМесяцГГГГ()
+}
+ПланировщикЗадач --> СервисМетодики
+СервисМетодики --> ВерсияМетодики
+СервисМетодики --> РезультатСкоринга
+СервисМетодики --> РасчётМетрик
+СервисМетодики --> Кредит
+СервисМетодики --> ОтчётМониторинга
+ЭкранМетодики --> СервисМетодики
+ВерсияМетодики "1" -- "0..*" РезультатСкоринга
+ВерсияМетодики "1" -- "0..*" ОтчётМониторинга
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+participant "АБС" as ABS
+boundary "ШлюзАБС" as GW
+entity "Кредит" as LN
+entity "ЖурналОбмена" as IL
+ABS -> GW : принятьСведения(пакет) [POST /api/integration/abs/loans]
+GW -> GW : проверитьКлюч()
+alt ключ неверен
+  GW --> ABS : 401
+else ключ верен
+  loop для каждого договора в пакете
+    GW -> LN : найти(номер договора)
+    alt договор найден
+      GW -> LN : setСостояние(active / closed / default)
+      GW -> LN : setМаксПросрочка(значение) [максимум из прежней и новой]
+    else не найден
+      GW -> GW : добавитьВНенайденные()
+    end
+  end
+  GW -> IL : записать(обновлено N, не найдено M)
+  GW --> ABS : обновлено, не найдены
+end
+@enduml

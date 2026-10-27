@@ -1,0 +1,30 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+skinparam rectangle {
+ BorderColor black
+}
+actor "Время" as TM
+rectangle ":ПланировщикЗадач\n«control»" as SCH
+rectangle ":СервисМетодики\n«control»" as T
+rectangle ":ВерсияМетодики\n«entity»" as M
+rectangle ":РезультатСкоринга\n«entity»" as R
+rectangle ":Кредит\n«entity»" as LN
+rectangle ":РасчётМетрик\n«control»" as MT
+rectangle ":ОтчётМониторинга\n«entity»" as MR
+actor "Риск-аналитик" as RA
+rectangle ":ЭкранМетодики\n«boundary»" as UI
+TM -- SCH : "1: мониторингМетодики() [1-го\nчисла, 04:00] ↓"
+SCH -- T : "2: мониторинг(прошлый месяц) ↓"
+T -- M : "3: опубликованная() ↓"
+T -- R : "4: выбрать(месяц) ↓"
+T -- MT : "5: PSI(оценки, эталон) [эталон —\nвыборка проверки версии] ↓\n7: Gini(созревшие кредиты) ↓"
+T -- LN : "6: созревшие(конец месяца) ↓"
+T -- T : "8: сравнитьСПорогами() [PSI >\n0,25; снижение Gini > 10 %]"
+T -- MR : "9: создать(период, PSI, Gini,\nдоля дефолтов, оповещения) ↓"
+RA -- UI : "10: открыть «Мониторинг» ↓\n13: [нужен расчёт за другой\nмесяц] рассчитать за месяц ГГГГ-\nММ ↓"
+T -- UI : "11: историяМониторинга() ↑\n12: PSI и Gini по месяцам,\nоповещения ↓\n14: [нужен расчёт за другой\nмесяц] мониторинг(период) ↑"
+@enduml

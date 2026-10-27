@@ -1,0 +1,80 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class КарточкаЗаявки <<boundary>> {
+ +открытьЗаявкуОчереди()
+ +решениеКомитета()
+}
+class КонтроллерРешений <<control>> {
+ +карточка(заявка)
+ +решениеКомитета(заявка, решение)
+ -проверитьУсловия()
+}
+class Решение <<entity>> {
+ {field} stage: строка(20)
+ {field} recommendation: строка(20)
+ {field} outcome: строка(20)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} rate: дробное
+ --
+ +история(заявка)
+ +создать(этап комитет, итог, условия)
+}
+class РезультатСкоринга <<entity>> {
+ {field} pd: дробное
+ {field} score: дробное
+ {field} risk_class: строка(1)
+ {field} pdn: дробное
+ {field} stop_factors: JSON
+ {field} factors: JSON
+ --
+ +последний(заявка)
+}
+class Сотрудник <<entity>> {
+ {field} login: строка(64)
+ {field} full_name: строка(200)
+ {field} role: строка(32)
+ {field} limit_amount: деньги
+ {field} active: логическое
+ --
+ +лимитПолномочий()
+}
+class Заявка <<entity>> {
+ {field} number: строка(30)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} purpose: строка(200)
+ {field} channel: строка(20)
+ {field} marital_status: строка(20)
+ --
+ +setСтатус(Одобрена / Отклонена)
+}
+class Уведомитель <<control>> {
+ +уведомитьКлиента(заявка, решение)
+}
+class ЖурналАудита <<entity>> {
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+ --
+ +записать(кредитный комитет)
+}
+КарточкаЗаявки --> КонтроллерРешений
+КонтроллерРешений --> Решение
+КонтроллерРешений --> РезультатСкоринга
+КонтроллерРешений --> Сотрудник
+КонтроллерРешений --> Заявка
+КонтроллерРешений --> Уведомитель
+КонтроллерРешений --> ЖурналАудита
+Сотрудник "1" -- "0..*" Заявка
+Заявка "1" -- "0..*" РезультатСкоринга
+Заявка "1" -- "0..*" Решение
+Сотрудник "1" -- "0..*" Решение
+@enduml

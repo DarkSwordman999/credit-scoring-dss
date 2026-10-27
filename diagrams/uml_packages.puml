@@ -4,18 +4,23 @@ skinparam dpi 150
 skinparam defaultFontName Arial
 skinparam shadowing false
 skinparam monochrome true
-package "ui (граничные классы)" as ui
-package "application (управляющие классы)" as app
-package "domain (сущности)" as dom
-package "scoring (скоринговая карта, метрики)" as ml
-package "integration (адаптеры БКИ, АБС)" as integ
-package "reporting (отчёты)" as rep
-ui ..> app
-app ..> dom
-app ..> ml
-app ..> integ
-app ..> rep
-ml ..> dom
-rep ..> dom
-integ ..> dom
+package "frontend/pages\n(граничные классы: экраны React)" as ui
+package "api\n(граничные классы: REST API, роли)" as api
+package "services\n(управляющие классы: заявки, досье,\nметодика, отчёты, резервные копии)" as srv
+package "scoring\n(признаки, стоп-факторы,\nскоринговая карта, метрики)" as sc
+package "scoring_service\n(отдельный сервис скоринга)" as ss
+package "services/integration\n(адаптеры БКИ и АБС)" as integ
+package "models\n(классы-сущности)" as dom
+package "audit, security, scheduler\n(журналы, вход, планировщик)" as infra
+ui ..> api
+api ..> srv
+api ..> infra
+srv ..> sc
+srv ..> ss
+srv ..> integ
+srv ..> dom
+ss ..> sc
+sc ..> dom
+infra ..> srv
+infra ..> dom
 @enduml

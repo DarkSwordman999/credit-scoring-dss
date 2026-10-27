@@ -1,0 +1,24 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+skinparam rectangle {
+ BorderColor black
+}
+actor "Администратор" as AD
+rectangle ":ЭкранАдминистрирования\n«boundary»" as UI
+rectangle ":СервисАдминистрирования\n«control»" as S
+rectangle ":ЖурналАудита\n«entity»" as AU
+rectangle ":ЖурналОбмена\n«entity»" as IL
+rectangle ":ЭкранТаблицБД\n«boundary»" as DT
+rectangle ":СервисДанных\n«control»" as SD
+AD -- UI : "1: журнал аудита: период, логин,\nдействие ↓\n5: журнал обмена: система,\nстатус ↓"
+UI -- S : "2: журналАудита(отбор) ↓\n4: записи с изменениями «было →\nстало» ↑\n6: журналОбмена(отбор) ↓\n8: обмен с БКИ, АБС, сервисом\nскоринга ↑"
+S -- AU : "3: выбрать(отбор) ↓"
+S -- IL : "7: выбрать(отбор) ↓"
+AD -- DT : "9: открыть таблицу базы данных ↓"
+DT -- SD : "10: строки(таблица, отбор,\nстраница) ↓\n13: строки только для чтения ↑"
+SD -- SD : "11: скрытьПДн() [не\nруководитель]\n12: скрытьХэшиПаролей()"
+@enduml

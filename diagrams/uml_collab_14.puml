@@ -1,0 +1,31 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+skinparam rectangle {
+ BorderColor black
+}
+actor "Руководитель отдела" as HD
+rectangle ":РеестрЗаёмщиков\n«boundary»" as UI
+rectangle ":СервисПортфеля\n«control»" as P
+rectangle ":Клиент\n«entity»" as CL
+rectangle ":Заявка\n«entity»" as AP
+rectangle ":Кредит\n«entity»" as LN
+rectangle ":КредитныйОтчёт\n«entity»" as CR
+rectangle ":РезультатСкоринга\n«entity»" as R
+rectangle ":ЖурналАудита\n«entity»" as AU
+rectangle ":ЭкранПортфеля\n«boundary»" as LP
+HD -- UI : "1: отбор: фамилия, паспорт, «с\nкредитами», «с просрочкой» ↓\n7: открыть карточку клиента ↓"
+UI -- P : "2: реестр(отбор, страница) ↓\n6: реестр заёмщиков ↑\n8: карточка(клиент) ↓\n11: данные, доход, история,\nзаявки, кредиты ↑"
+P -- CL : "3: выбрать(отбор) ↓"
+P -- AP : "4: итогиПоКлиентам() [заявок,\nодобрено, отклонено] ↓"
+P -- LN : "5: итогиПоКлиентам()\n[задолженность, просрочка] ↓\n14: выбрать(отбор) ↓"
+P -- CR : "9: получить(клиент) ↓"
+P -- AU : "10: записать(просмотр карточки\nклиента) ↓"
+HD -- LP : "12: открыть «Кредитный портфель»\n↓"
+P -- LP : "13: портфель(статус, период,\nотбор) ↑\n17: кредиты и качество портфеля\n↓"
+P -- R : "15: последнийПоЗаявке(кредиты)\n[коррелированный подзапрос] ↓"
+P -- P : "16: качествоПоКлассам() [средний\nPD и доля дефолтов]"
+@enduml

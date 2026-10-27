@@ -1,0 +1,84 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+class Заявка <<entity>> {
+ {field} number: строка(30)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} purpose: строка(200)
+ {field} channel: строка(20)
+ {field} marital_status: строка(20)
+ {field} dependents: целое
+ {field} education: строка(20)
+ {field} housing: строка(20)
+ {field} status: строка(20)
+ {field} created_at: дата и время
+ {field} registered_at: дата и время
+ {field} decided_at: дата и время
+ {field} updated_at: дата и время
+}
+class РезультатСкоринга <<entity>> {
+ {field} created_at: дата и время
+ {field} pd: дробное
+ {field} score: дробное
+ {field} risk_class: строка(1)
+ {field} pdn: дробное
+ {field} stop_factors: JSON
+ {field} factors: JSON
+ {field} features: JSON
+ {field} recommendation: строка(20)
+ {field} rec_amount: деньги
+ {field} rec_term: целое
+ {field} rec_rate: дробное
+ {field} fallback: логическое
+ {field} duration_ms: целое
+}
+class ВерсияМетодики <<entity>> {
+ {field} version: целое
+ {field} name: строка(200)
+ {field} algorithm: строка(30)
+ {field} status: строка(20)
+ {field} params: JSON
+ {field} metrics: JSON
+ {field} comment: текст
+ {field} created_at: дата и время
+ {field} approved_at: дата и время
+ {field} published_at: дата и время
+}
+class ОтчётМониторинга <<entity>> {
+ {field} period: строка(7)
+ {field} created_at: дата и время
+ {field} n_scored: целое
+ {field} psi: дробное
+ {field} n_matured: целое
+ {field} gini: дробное
+ {field} gini_ref: дробное
+ {field} default_rate: дробное
+ {field} alerts: JSON
+ {field} details: JSON
+}
+class СтопФактор <<entity>> {
+ {field} code: строка(20)
+ {field} description: строка(300)
+ {field} rule: строка(30)
+ {field} threshold: дробное
+ {field} active: логическое
+}
+class ПравилоУсловий <<entity>> {
+ {field} risk_class: строка(1)
+ {field} pdn_from: дробное
+ {field} pdn_to: дробное
+ {field} decision: строка(20)
+ {field} amount_factor: дробное
+ {field} rate_add: дробное
+}
+Заявка "1" -- "0..*" РезультатСкоринга
+ВерсияМетодики "1" -- "0..*" РезультатСкоринга
+ВерсияМетодики "1" -- "0..*" ОтчётМониторинга
+@enduml

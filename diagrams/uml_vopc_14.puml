@@ -1,0 +1,80 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class ЭкранОтчётов <<boundary>> {
+ +выбратьВидОтчёта()
+ +выгрузитьXLSXPDF()
+}
+class СервисОтчётов <<control>> {
+ +сформировать(...)
+ -агрегировать()
+}
+class Заявка <<entity>> {
+ {field} number: строка(30)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} purpose: строка(200)
+ {field} channel: строка(20)
+ {field} marital_status: строка(20)
+ --
+ +выбрать(период)
+}
+class Решение <<entity>> {
+ {field} stage: строка(20)
+ {field} recommendation: строка(20)
+ {field} outcome: строка(20)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} rate: дробное
+ --
+ +выбрать(период)
+}
+class РезультатСкоринга <<entity>> {
+ {field} pd: дробное
+ {field} score: дробное
+ {field} risk_class: строка(1)
+ {field} pdn: дробное
+ {field} stop_factors: JSON
+ {field} factors: JSON
+ --
+ +выбрать(кредиты)
+}
+class Кредит <<entity>> {
+ {field} contract_number: строка(40)
+ {field} issued_at: дата
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} rate: дробное
+ {field} status: строка(20)
+ --
+ +выбрать(период)
+}
+class ОтчётМониторинга <<entity>> {
+ {field} period: строка(7)
+ {field} n_scored: целое
+ {field} psi: дробное
+ {field} n_matured: целое
+ {field} gini: дробное
+ {field} gini_ref: дробное
+ --
+ +выбрать(период)
+}
+class ВыгрузкаXLSX_PDF <<control>> {
+ +построитьФайл(отчёт, формат)
+}
+ЭкранОтчётов --> СервисОтчётов
+СервисОтчётов --> Заявка
+СервисОтчётов --> Решение
+СервисОтчётов --> Кредит
+СервисОтчётов --> РезультатСкоринга
+СервисОтчётов --> ОтчётМониторинга
+СервисОтчётов --> ВыгрузкаXLSX_PDF
+Заявка "1" -- "0..*" РезультатСкоринга
+Заявка "1" -- "0..*" Решение
+Заявка "1" -- "0..1" Кредит
+@enduml

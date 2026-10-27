@@ -1,0 +1,106 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+class Клиент <<entity>> {
+ {field} last_name: строка(100)
+ {field} first_name: строка(100)
+ {field} middle_name: строка(100)
+ {field} birth_date: дата
+ {field} passport_series: строка(4)
+ {field} passport_number: строка(6)
+ {field} passport_issued: дата
+ {field} citizenship: строка(50)
+ {field} reg_address: строка(300)
+ {field} phone: строка(30)
+ {field} email: строка(120)
+ {field} created_at: дата и время
+}
+class Занятость <<entity>> {
+ {field} employment_type: строка(30)
+ {field} employer: строка(200)
+ {field} position: строка(200)
+ {field} experience_months: целое
+ {field} income_confirmed: деньги
+ {field} created_at: дата и время
+}
+class КредитныйПродукт <<entity>> {
+ {field} name: строка(200)
+ {field} min_amount: деньги
+ {field} max_amount: деньги
+ {field} min_term: целое
+ {field} max_term: целое
+ {field} base_rate: дробное
+ {field} active: логическое
+}
+class Заявка <<entity>> {
+ {field} number: строка(30)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} purpose: строка(200)
+ {field} channel: строка(20)
+ {field} marital_status: строка(20)
+ {field} dependents: целое
+ {field} education: строка(20)
+ {field} housing: строка(20)
+ {field} status: строка(20)
+ {field} created_at: дата и время
+ {field} registered_at: дата и время
+ {field} decided_at: дата и время
+ {field} updated_at: дата и время
+}
+class Согласие <<entity>> {
+ {field} kind: строка(10)
+ {field} signed_at: дата
+ {field} valid_until: дата
+}
+class Документ <<entity>> {
+ {field} kind: строка(50)
+ {field} filename: строка(255)
+ {field} content_type: строка(100)
+ {field} size: целое
+ {field} stored_name: строка(100)
+ {field} uploaded_at: дата и время
+}
+class Решение <<entity>> {
+ {field} stage: строка(20)
+ {field} recommendation: строка(20)
+ {field} outcome: строка(20)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} rate: дробное
+ {field} comment: текст
+ {field} created_at: дата и время
+}
+class Кредит <<entity>> {
+ {field} contract_number: строка(40)
+ {field} issued_at: дата
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} rate: дробное
+ {field} status: строка(20)
+ {field} max_dpd_12m: целое
+ {field} updated_at: дата и время
+}
+class Уведомление <<entity>> {
+ {field} channel: строка(10)
+ {field} recipient: строка(120)
+ {field} text: текст
+ {field} status: строка(20)
+ {field} created_at: дата и время
+}
+Клиент "1" -- "0..*" Занятость
+Клиент "1" -- "0..*" Заявка
+КредитныйПродукт "1" -- "0..*" Заявка
+Занятость "1" -- "0..*" Заявка
+Заявка "1" -- "0..*" Согласие
+Заявка "1" -- "0..*" Документ
+Заявка "1" -- "0..*" Решение
+Заявка "1" -- "0..1" Кредит
+Заявка "1" -- "0..*" Уведомление
+@enduml

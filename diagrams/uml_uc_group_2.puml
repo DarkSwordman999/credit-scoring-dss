@@ -1,0 +1,38 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+left to right direction
+actor "Сотрудник" as ST
+actor "Руководитель\nотдела" as HD
+actor "Риск-аналитик" as RA
+actor "Администратор" as AD
+actor "Время" as TM
+ST <|-- HD
+ST <|-- RA
+ST <|-- AD
+rectangle "Отчёты и администрирование" {
+  usecase "Войти в систему" as U0
+  usecase "Сменить пароль" as U0a
+  usecase "Сформировать отчёт" as U14
+  usecase "Просмотреть заёмщиков\nи кредитный портфель" as U15
+  usecase "Вести справочники\nкредитной политики" as U16
+  usecase "Управлять пользователями,\nпараметрами и журналами" as U17
+  usecase "Просмотреть журналы\nи таблицы БД" as U18
+  usecase "Создать резервную копию\nи восстановить БД" as U19
+}
+ST --> U0
+ST --> U0a
+HD --> U14
+RA --> U14
+HD --> U15
+AD --> U16
+AD --> U17
+U18 .> U17 : <<extend>>
+RA --> U18
+AD --> U19
+TM --> U19
+U0a .> U0 : <<extend>>
+@enduml

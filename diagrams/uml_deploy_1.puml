@@ -1,0 +1,16 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+node "Компьютер Windows 10/11 x64" as pc {
+  artifact "Веб-браузер" as br
+  component "КредитныйСкоринг.exe\n(веб-сервер, интерфейс,\nрасчёт оценки, планировщик)" as exe
+  database "data\\creditdss.db\n(SQLite)" as db
+  folder "data\\documents,\ndata\\backup" as fs
+}
+br --> exe : HTTP 127.0.0.1:8000
+exe --> db
+exe --> fs
+@enduml

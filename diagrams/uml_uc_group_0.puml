@@ -1,0 +1,43 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+left to right direction
+actor "Кредитный\nспециалист" as KS
+actor "Андеррайтер" as UW
+actor "Руководитель\nотдела" as HD
+actor "Время" as TM
+actor "БКИ" as BKI <<system>>
+actor "АБС" as ABS <<system>>
+rectangle "Рассмотрение заявок" {
+  usecase "Зарегистрировать заявку" as U1
+  usecase "Прикрепить документы клиента" as U2
+  usecase "Собрать кредитное досье" as U3
+  usecase "Повторить запросы\nк внешним системам" as U4
+  usecase "Выполнить скоринг заявки" as U5
+  usecase "Принять решение по заявке" as U6
+  usecase "Пересчитать оценку" as U6a
+  usecase "Запросить дополнительные\nдокументы" as U7
+  usecase "Утвердить решение\nкредитным комитетом" as U8
+  usecase "Оформить выдачу\nили отказ клиента" as U9
+}
+KS --> U1
+KS --> U2
+KS --> U9
+KS --> U4
+UW --> U6
+HD --> U8
+TM --> U4
+U1 ..> U3 : <<include>>
+U3 ..> U5 : <<include>>
+U4 .> U3 : <<extend>>
+U6a .> U6 : <<extend>>
+U7 .> U6 : <<extend>>
+U8 .> U6 : <<extend>>
+U7 ..> U2 : <<include>>
+U3 --> BKI
+U3 --> ABS
+U9 --> ABS
+@enduml

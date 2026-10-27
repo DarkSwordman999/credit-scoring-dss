@@ -1,0 +1,50 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class ЭкранАдминистрирования <<boundary>> {
+ +добавитьПользователя()
+ +изменитьРоль()
+ +изменитьПараметрыСистемы()
+}
+class СервисАдминистрирования <<control>> {
+ +создатьПользователя(данные)
+ -проверить()
+ +изменитьПользователя(данные)
+ -запретитьБлокировкуСебя()
+ +сохранитьПараметры(значения)
+}
+class Сотрудник <<entity>> {
+ {field} login: строка(64)
+ {field} full_name: строка(200)
+ {field} role: строка(32)
+ {field} limit_amount: деньги
+ {field} active: логическое
+ --
+ +найти(логин)
+ +создать(хэш пароля, роль, лимит)
+ +обновить()
+}
+class Параметр <<entity>> {
+ {field} key: строка(50)
+ {field} value: JSON
+ --
+ +setЗначение()
+}
+class ЖурналАудита <<entity>> {
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+ --
+ +записать(...)
+}
+ЭкранАдминистрирования --> СервисАдминистрирования
+СервисАдминистрирования --> Сотрудник
+СервисАдминистрирования --> ЖурналАудита
+СервисАдминистрирования --> Параметр
+@enduml

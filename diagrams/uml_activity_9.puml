@@ -1,0 +1,28 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+|Кредитный специалист|
+start
+:Открыть одобренную заявку;
+if (Клиент согласен с условиями?) then (да)
+  :Отметить «Кредит выдан»;
+  |Система|
+  :Передать заявку в АБС;
+  if (АБС ответила?) then (да)
+    :Создать кредит с номером договора;
+    :Статус «Выдана»;
+  else (нет)
+    :Ошибка 503, заявка
+    остаётся одобренной;
+  endif
+else (нет)
+  |Кредитный специалист|
+  :Отметить отказ клиента;
+  |Система|
+  :Статус «Отказ клиента»;
+endif
+stop
+@enduml

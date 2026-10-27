@@ -5,43 +5,60 @@ skinparam defaultFontName Arial
 skinparam shadowing false
 skinparam monochrome true
 left to right direction
+skinparam packageStyle rectangle
 actor "Кредитный\nспециалист" as KS
 actor "Андеррайтер" as UW
 actor "Руководитель\nотдела" as HD
 actor "Риск-аналитик" as RA
 actor "Администратор" as AD
+actor "Время" as TM
 actor "БКИ" as BKI <<system>>
 actor "АБС" as ABS <<system>>
 rectangle "СППР оценки кредитоспособности" {
-  usecase "Авторизоваться" as U0
-  usecase "Зарегистрировать заявку" as U1
-  usecase "Запросить кредитный отчёт" as U2
-  usecase "Выполнить скоринг заявки" as U3
-  usecase "Просмотреть оценку\nи факторы" as U4
-  usecase "Принять решение\nпо заявке" as U5
-  usecase "Утвердить решение\nкредитным комитетом" as U6
-  usecase "Подготовить и опубликовать\nверсию методики" as U7
-  usecase "Мониторить качество\nметодики" as U8
-  usecase "Сформировать отчёт" as U9
-  usecase "Управлять пользователями\nи справочниками" as U10
-  usecase "Просмотреть заёмщиков\nи кредитный портфель" as U11
+  usecase "Войти в систему" as U0
+  usecase "Зарегистрировать\nзаявку" as U1
+  usecase "Прикрепить\nдокументы клиента" as U2
+  usecase "Собрать кредитное\nдосье" as U3
+  usecase "Выполнить скоринг\nзаявки" as U5
+  usecase "Принять решение\nпо заявке" as U6
+  usecase "Запросить\nдополнительные документы" as U7
+  usecase "Утвердить решение\nкредитным комитетом" as U8
+  usecase "Оформить выдачу\nили отказ клиента" as U9
+  usecase "Подготовить и проверить\nверсию методики" as U10
+  usecase "Утвердить и опубликовать\nверсию методики" as U11
+  usecase "Мониторить качество\nметодики" as U12
+  usecase "Принять сведения\nоб обслуживании кредитов" as U13
+  usecase "Сформировать отчёт" as U14
+  usecase "Просмотреть заёмщиков\nи кредитный портфель" as U15
+  usecase "Вести справочники\nкредитной политики" as U16
+  usecase "Управлять пользователями,\nпараметрами и журналами" as U17
+  usecase "Создать резервную копию\nи восстановить БД" as U19
 }
 KS --> U1
-UW --> U4
-UW --> U5
-HD --> U6
-HD --> U9
-RA --> U7
-RA --> U8
-AD --> U10
+KS --> U2
+KS --> U9
+UW --> U6
+HD --> U8
+RA --> U10
 HD --> U11
-UW --> U11
-U1 ..> U2 : <<include>>
+RA --> U11
+RA --> U12
+TM --> U12
+HD --> U14
+RA --> U14
+HD --> U15
+UW --> U15
+RA --> U16
+AD --> U16
+AD --> U17
+AD --> U19
+TM --> U19
 U1 ..> U3 : <<include>>
-U2 --> BKI
-U3 ..> ABS
-U6 .> U5 : <<extend>>
-U1 ..> U0 : <<include>>
-U5 ..> U0 : <<include>>
-U7 ..> U0 : <<include>>
+U3 ..> U5 : <<include>>
+U7 .> U6 : <<extend>>
+U8 .> U6 : <<extend>>
+U3 --> BKI
+U3 --> ABS
+U9 --> ABS
+ABS --> U13
 @enduml

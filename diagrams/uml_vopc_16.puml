@@ -1,0 +1,84 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class ЭкранСправочников <<boundary>> {
+ +изменитьСтопФактор()
+ +изменитьПорогиКлассов()
+ +добавитьКредитныйПродукт()
+ +добавитьЗаписьВнутренний()
+}
+class СервисСправочников <<control>> {
+ +сохранитьСтопФактор(данные)
+ -проверитьПравило()
+ +сохранитьУсловия(классы, матрица)
+ -проверитьМатрицу()
+ +сохранитьПродукт(...)
+ -проверитьГраницы()
+ +добавитьВСтопЛист(паспорт, ФИО, основание)
+}
+class СтопФактор <<entity>> {
+ {field} code: строка(20)
+ {field} description: строка(300)
+ {field} rule: строка(30)
+ {field} threshold: дробное
+ {field} active: логическое
+ --
+ +обновить()
+}
+class Параметр <<entity>> {
+ {field} key: строка(50)
+ {field} value: JSON
+ --
+ +setКлассыРиска()
+}
+class ПравилоУсловий <<entity>> {
+ {field} risk_class: строка(1)
+ {field} pdn_from: дробное
+ {field} pdn_to: дробное
+ {field} decision: строка(20)
+ {field} amount_factor: дробное
+ {field} rate_add: дробное
+ --
+ +заменить(матрица)
+}
+class КредитныйПродукт <<entity>> {
+ {field} name: строка(200)
+ {field} min_amount: деньги
+ {field} max_amount: деньги
+ {field} min_term: целое
+ {field} max_term: целое
+ {field} base_rate: дробное
+ --
+ +создать()
+}
+class ЗаписьСтопЛиста <<entity>> {
+ {field} source: строка(20)
+ {field} passport_series: строка(4)
+ {field} passport_number: строка(6)
+ {field} full_name: строка(300)
+ {field} birth_date: дата
+ {field} reason: строка(300)
+ --
+ +создать()
+}
+class ЖурналАудита <<entity>> {
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+ --
+ +записать(изменение справочника)
+}
+ЭкранСправочников --> СервисСправочников
+СервисСправочников --> СтопФактор
+СервисСправочников --> Параметр
+СервисСправочников --> ПравилоУсловий
+СервисСправочников --> КредитныйПродукт
+СервисСправочников --> ЗаписьСтопЛиста
+СервисСправочников --> ЖурналАудита
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class ЭкранАдминистрирования <<boundary>> {
+ +журналАудита()
+ +журналОбмена()
+}
+class СервисАдминистрирования <<control>> {
+ +журналАудита(отбор)
+ +журналОбмена(отбор)
+}
+class ЖурналАудита <<entity>> {
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+ --
+ +выбрать(отбор)
+}
+class ЖурналОбмена <<entity>> {
+ {field} system: строка(30)
+ {field} direction: строка(5)
+ {field} status: строка(10)
+ {field} message: текст
+ --
+ +выбрать(отбор)
+}
+class ЭкранТаблицБД <<boundary>> {
+ +открытьТаблицуБазы()
+}
+class СервисДанных <<control>> {
+ +строки(таблица, отбор, страница)
+ -скрытьПДн()
+ -скрытьХэшиПаролей()
+}
+ЭкранАдминистрирования --> СервисАдминистрирования
+СервисАдминистрирования --> ЖурналАудита
+СервисАдминистрирования --> ЖурналОбмена
+ЭкранТаблицБД --> СервисДанных
+@enduml

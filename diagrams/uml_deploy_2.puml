@@ -1,0 +1,33 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+node "АРМ сотрудника" as pc {
+  component "Интерфейс\n(React)" as ui
+}
+node "Сервер приложений" as app {
+  component "api" as api
+  component "services" as srv
+  component "scoring_service" as ss
+  component "scheduler" as sch
+}
+node "Сервер БД" as dbs {
+  database "credit_db" as db
+}
+node "Внешние системы" as ext {
+  component "БКИ" as bki
+  component "АБС" as abs
+  component "LDAP" as ldap
+}
+ui --> api : HTTPS / JSON
+api --> srv
+srv --> ss : REST
+sch --> srv
+srv --> db : SQL
+srv --> bki
+srv --> abs
+abs --> api
+api --> ldap
+@enduml

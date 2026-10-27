@@ -1,0 +1,19 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide empty description
+state "Ожидание повтора\n(pending)" as pending
+state "Выполнен\n(ok)" as ok
+state "Неудача\n(failed)" as failed
+[*] --> pending : первый запрос\n[БКИ или АБС недоступны]
+[*] --> ok : данные получены
+pending --> pending : повтор через 5 мин\n[попыток < 3]
+pending --> ok : данные получены
+pending --> failed : 3 неудачные попытки
+failed --> pending : ручной повтор /\nпопытки = 0
+failed --> ok : ручной повтор успешен
+ok --> [*]
+@enduml

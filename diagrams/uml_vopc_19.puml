@@ -1,0 +1,33 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class ПланировщикЗадач <<control>> {
+ +резервнаяКопия()
+}
+class СервисРезервногоКопирования <<control>> {
+ +создатьКопию()
+ +файлКопии(имя)
+ +восстановить(файл)
+ -страховочнаяКопия()
+}
+class ЭкранАдминистрирования <<boundary>> {
+ +создатьКопиюСейчас()
+ +скачатьКопию()
+}
+class ЖурналАудита <<entity>> {
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+ --
+ +записать(резервная копия)
+}
+ПланировщикЗадач --> СервисРезервногоКопирования
+ЭкранАдминистрирования --> СервисРезервногоКопирования
+СервисРезервногоКопирования --> ЖурналАудита
+@enduml

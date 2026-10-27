@@ -1,0 +1,18 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+skinparam rectangle {
+ BorderColor black
+}
+rectangle ":АБС" as ABS
+rectangle ":ШлюзАБС\n«boundary»" as GW
+rectangle ":Кредит\n«entity»" as LN
+rectangle ":ЖурналОбмена\n«entity»" as IL
+ABS -- GW : "1: принятьСведения(пакет) [POST\n/api/integration/abs/loans] ↓\n3: [ключ неверен] 401 ↑\n9: [ключ верен] обновлено, не\nнайдены ↑"
+GW -- GW : "2: проверитьКлюч()\n7: [не найден]\nдобавитьВНенайденные()"
+GW -- LN : "4: [для каждого договора в\nпакете] найти(номер договора) ↓\n5: [договор найден]\nsetСостояние(active / closed /\ndefault) ↓\n6: [договор найден]\nsetМаксПросрочка(значение)\n[максимум из прежней и новой] ↓"
+GW -- IL : "8: [ключ верен]\nзаписать(обновлено N, не найдено\nM) ↓"
+@enduml

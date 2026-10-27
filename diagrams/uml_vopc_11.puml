@@ -1,0 +1,44 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class ЭкранМетодики <<boundary>> {
+ +отправитьУтверждение()
+ +утвердитьОтклонитьПричиной()
+ +опубликовать()
+ +откатитьсяАрхивнуюВерсию()
+}
+class СервисМетодики <<control>> {
+ +отправить(версия)
+ -проверитьМетрики()
+ +утвердить(версия, решение, комментарий)
+ +опубликовать(версия)
+ +откатить(архивная)
+}
+class ВерсияМетодики <<entity>> {
+ {field} version: целое
+ {field} name: строка(200)
+ {field} algorithm: строка(30)
+ {field} status: строка(20)
+ {field} params: JSON
+ {field} metrics: JSON
+ --
+ +setСтатус(...)
+ +вАрхив(текущая опубликованная)
+}
+class ЖурналАудита <<entity>> {
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+ --
+ +записать(публикация версии)
+}
+ЭкранМетодики --> СервисМетодики
+СервисМетодики --> ВерсияМетодики
+СервисМетодики --> ЖурналАудита
+@enduml

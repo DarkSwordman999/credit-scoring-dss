@@ -1,0 +1,35 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+package "Клиентская часть (React, Ant Design)" {
+  [Экраны: вход, заявки, карточка заявки,\nзаёмщики, портфель, методика, отчёты,\nсправочники, администрирование, таблицы БД] as ui
+}
+package "Сервер (backend/creditdss)" {
+  [api\n(REST-маршруты, проверка ролей)] as api
+  [services\n(заявки, досье, методика,\nотчёты, резервные копии)] as srv
+  [scoring\n(признаки, стоп-факторы,\nскоринговая карта, метрики)] as sc
+  [scoring_service\n(сервис скоринга)] as ss
+  [integration\n(адаптеры БКИ, АБС)] as integ
+  [models, db, migrations\n(SQLAlchemy, Alembic)] as m
+  [audit, security\n(журналы, JWT, LDAP)] as sec
+  [scheduler\n(APScheduler)] as sch
+}
+database "БД\n(PostgreSQL / SQLite)" as db
+interface "REST /api" as rest
+interface "POST /score" as score
+ui --> rest
+rest - api
+api --> srv
+api --> sec
+srv --> sc
+srv --> integ
+srv ..> score
+score - ss
+ss --> sc
+srv --> m
+sch --> srv
+m --> db
+@enduml

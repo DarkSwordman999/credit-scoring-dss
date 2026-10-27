@@ -1,0 +1,28 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+skinparam rectangle {
+ BorderColor black
+}
+actor "Андеррайтер" as UW
+rectangle ":КарточкаЗаявки\n«boundary»" as UI
+rectangle ":КонтроллерРешений\n«control»" as C
+rectangle ":Решение\n«entity»" as D
+rectangle ":Заявка\n«entity»" as AP
+actor "Кредитный специалист" as KS
+rectangle ":КонтроллерЗаявок\n«control»" as CZ
+rectangle ":Документ\n«entity»" as DOC
+rectangle ":СервисДосье\n«control»" as DS
+UW -- UI : "1: запросить документы, указать\nкакие ↓"
+UI -- C : "2: решить(заявка, docs,\nкомментарий) ↓\n3: [комментарий пуст] «Укажите,\nкакие документы нужны» ↑"
+C -- D : "4: [указан] создать(итог = docs,\nкомментарий) ↓"
+C -- AP : "5: [указан] setСтатус(Требуются\nдокументы) ↓"
+UI -- KS : "6: прикрепить полученные\nдокументы ↑\n9: вернуть на рассмотрение ↑"
+UI -- CZ : "7: прикрепить(заявка, файл) ↓\n10:\nвернутьНаРассмотрение(заявка) ↓\n13: оценка пересчитана ↑"
+CZ -- DOC : "8: создать() ↓"
+AP -- CZ : "11: setСтатус(На рассмотрении) ↑"
+CZ -- DS : "12: выполнитьСкоринг(заявка) ↓"
+@enduml

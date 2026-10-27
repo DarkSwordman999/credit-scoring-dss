@@ -1,0 +1,71 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+class Заявка <<entity>> {
+ {field} number: строка(30)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} purpose: строка(200)
+ {field} channel: строка(20)
+ {field} marital_status: строка(20)
+ {field} dependents: целое
+ {field} education: строка(20)
+ {field} housing: строка(20)
+ {field} status: строка(20)
+ {field} created_at: дата и время
+ {field} registered_at: дата и время
+ {field} decided_at: дата и время
+ {field} updated_at: дата и время
+}
+class ЗапросБКИ <<entity>> {
+ {field} attempts: целое
+ {field} status: строка(20)
+ {field} next_attempt_at: дата и время
+ {field} message: строка(500)
+ {field} created_at: дата и время
+ {field} updated_at: дата и время
+}
+class КредитныйОтчёт <<entity>> {
+ {field} received_at: дата и время
+ {field} found: логическое
+ {field} loans_count: целое
+ {field} active_loans: целое
+ {field} total_debt: деньги
+ {field} monthly_payments: деньги
+ {field} max_dpd: целое
+ {field} current_dpd: целое
+ {field} dpd30_12m: целое
+ {field} inquiries_6m: целое
+ {field} history_months: целое
+ {field} bankruptcy: логическое
+ {field} raw: JSON
+}
+class ДанныеАБС <<entity>> {
+ {field} received_at: дата и время
+ {field} is_client: логическое
+ {field} client_since_months: целое
+ {field} salary_project: логическое
+ {field} salary_avg: деньги
+ {field} accounts_count: целое
+ {field} deposits_balance: деньги
+ {field} bank_loans_count: целое
+ {field} bank_monthly_payments: деньги
+ {field} raw: JSON
+}
+class Проверка <<entity>> {
+ {field} check: строка(30)
+ {field} passed: логическое
+ {field} message: строка(300)
+ {field} checked_at: дата и время
+}
+Заявка "1" -- "0..*" ЗапросБКИ
+Заявка "1" -- "0..1" КредитныйОтчёт
+Заявка "1" -- "0..1" ДанныеАБС
+Заявка "1" -- "0..*" Проверка
+@enduml

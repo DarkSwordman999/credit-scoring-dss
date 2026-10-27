@@ -1,0 +1,27 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+actor "Администратор" as AD
+boundary "ЭкранАдминистрирования" as UI
+control "СервисАдминистрирования" as S
+entity "ЖурналАудита" as AU
+entity "ЖурналОбмена" as IL
+boundary "ЭкранТаблицБД" as DT
+control "СервисДанных" as SD
+AD -> UI : журнал аудита: период, логин, действие
+UI -> S : журналАудита(отбор)
+S -> AU : выбрать(отбор)
+S --> UI : записи с изменениями «было → стало»
+AD -> UI : журнал обмена: система, статус
+UI -> S : журналОбмена(отбор)
+S -> IL : выбрать(отбор)
+S --> UI : обмен с БКИ, АБС, сервисом скоринга
+AD -> DT : открыть таблицу базы данных
+DT -> SD : строки(таблица, отбор, страница)
+SD -> SD : скрытьПДн() [не руководитель]
+SD -> SD : скрытьХэшиПаролей()
+SD --> DT : строки только для чтения
+@enduml

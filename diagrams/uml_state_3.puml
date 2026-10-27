@@ -1,0 +1,17 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide empty description
+state "Действует\n(active)" as active
+state "Закрыт\n(closed)" as closed
+state "Дефолт\n(default)" as default
+[*] --> active : выдан [договор оформлен в АБС]
+active --> active : обновлена просрочка\n(сведения АБС)
+active --> closed : погашен
+active --> default : просрочка 90+ дней
+default --> closed : задолженность урегулирована
+closed --> [*]
+@enduml

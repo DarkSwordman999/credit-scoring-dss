@@ -1,0 +1,28 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+skinparam rectangle {
+ BorderColor black
+}
+actor "Руководитель отдела" as HD
+rectangle ":КарточкаЗаявки\n«boundary»" as UI
+rectangle ":КонтроллерРешений\n«control»" as C
+rectangle ":Решение\n«entity»" as D
+rectangle ":РезультатСкоринга\n«entity»" as R
+rectangle ":Сотрудник\n«entity»" as E
+rectangle ":Заявка\n«entity»" as AP
+rectangle ":Уведомитель\n«control»" as N
+rectangle ":ЖурналАудита\n«entity»" as AU
+HD -- UI : "1: открыть заявку из очереди\nкомитета ↓\n6: решение комитета, условия,\nкомментарий ↓"
+UI -- C : "2: карточка(заявка) ↓\n5: досье, оценка, предложение\nандеррайтера ↑\n7: решениеКомитета(заявка,\nрешение) ↓\n10: [сумма больше лимита\nруководителя] «Сумма превышает и\nваш лимит полномочий» ↑\n15: [проверки пройдены] решение\nсохранено ↑"
+C -- D : "3: история(заявка) ↓\n11: [проверки пройдены]\nсоздать(этап комитет, итог,\nусловия) ↓"
+C -- R : "4: последний(заявка) ↓"
+C -- C : "8: проверитьУсловия(),\nпроверитьКомментарий()"
+C -- E : "9: лимитПолномочий() ↓"
+C -- AP : "12: [проверки пройдены]\nsetСтатус(Одобрена / Отклонена)\n↓"
+C -- N : "13: [проверки пройдены]\nуведомитьКлиента(заявка,\nрешение) ↓"
+C -- AU : "14: [проверки пройдены]\nзаписать(кредитный комитет) ↓"
+@enduml

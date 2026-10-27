@@ -1,0 +1,53 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class КарточкаЗаявки <<boundary>> {
+ +выбратьВидДокумента()
+ +удалитьОшибочныйДокумент()
+}
+class КонтроллерЗаявок <<control>> {
+ +прикрепить(заявка, вид, файл)
+ -проверитьФайл()
+ +удалитьДокумент(заявка, документ)
+ -проверитьСтатус()
+}
+class Заявка <<entity>> {
+ {field} number: строка(30)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} purpose: строка(200)
+ {field} channel: строка(20)
+ {field} marital_status: строка(20)
+ --
+ +доступныеДействия(роль, статус)
+}
+class Документ <<entity>> {
+ {field} kind: строка(50)
+ {field} filename: строка(255)
+ {field} content_type: строка(100)
+ {field} size: целое
+ {field} stored_name: строка(100)
+ {field} uploaded_at: дата и время
+ --
+ +создать(...)
+ +удалить()
+}
+class ЖурналАудита <<entity>> {
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+ --
+ +записать(...)
+}
+КарточкаЗаявки --> КонтроллерЗаявок
+КонтроллерЗаявок --> Заявка
+КонтроллерЗаявок --> Документ
+КонтроллерЗаявок --> ЖурналАудита
+Заявка "1" -- "0..*" Документ
+@enduml

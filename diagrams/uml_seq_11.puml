@@ -1,0 +1,33 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+actor "Время" as TM
+control "ПланировщикЗадач" as SCH
+control "СервисМетодики" as T
+entity "ВерсияМетодики" as M
+entity "РезультатСкоринга" as R
+entity "Кредит" as LN
+control "РасчётМетрик" as MT
+entity "ОтчётМониторинга" as MR
+actor "Риск-аналитик" as RA
+boundary "ЭкранМетодики" as UI
+TM -> SCH : мониторингМетодики() [1-го числа, 04:00]
+SCH -> T : мониторинг(прошлый месяц)
+T -> M : опубликованная()
+T -> R : выбрать(месяц)
+T -> MT : PSI(оценки, эталон) [эталон — выборка проверки версии]
+T -> LN : созревшие(конец месяца)
+T -> MT : Gini(созревшие кредиты)
+T -> T : сравнитьСПорогами() [PSI > 0,25; снижение Gini > 10 %]
+T -> MR : создать(период, PSI, Gini, доля дефолтов, оповещения)
+RA -> UI : открыть «Мониторинг»
+UI -> T : историяМониторинга()
+T --> UI : PSI и Gini по месяцам, оповещения
+opt нужен расчёт за другой месяц
+  RA -> UI : рассчитать за месяц ГГГГ-ММ
+  UI -> T : мониторинг(период)
+end
+@enduml

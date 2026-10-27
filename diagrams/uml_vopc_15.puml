@@ -1,0 +1,93 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide circle
+skinparam classAttributeIconSize 0
+class РеестрЗаёмщиков <<boundary>> {
+ +отбор()
+ +открытьКарточкуКлиента()
+}
+class СервисПортфеля <<control>> {
+ +реестр(отбор, страница)
+ +карточка(клиент)
+ +портфель(статус, период, отбор)
+ -качествоПоКлассам()
+}
+class Клиент <<entity>> {
+ {field} last_name: строка(100)
+ {field} first_name: строка(100)
+ {field} middle_name: строка(100)
+ {field} birth_date: дата
+ {field} passport_series: строка(4)
+ {field} passport_number: строка(6)
+ --
+ +выбрать(отбор)
+}
+class Заявка <<entity>> {
+ {field} number: строка(30)
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} purpose: строка(200)
+ {field} channel: строка(20)
+ {field} marital_status: строка(20)
+ --
+ +итогиПоКлиентам()
+}
+class Кредит <<entity>> {
+ {field} contract_number: строка(40)
+ {field} issued_at: дата
+ {field} amount: деньги
+ {field} term_months: целое
+ {field} rate: дробное
+ {field} status: строка(20)
+ --
+ +итогиПоКлиентам()
+ +выбрать(отбор)
+}
+class КредитныйОтчёт <<entity>> {
+ {field} received_at: дата и время
+ {field} found: логическое
+ {field} loans_count: целое
+ {field} active_loans: целое
+ {field} total_debt: деньги
+ {field} monthly_payments: деньги
+ --
+ +получить(клиент)
+}
+class РезультатСкоринга <<entity>> {
+ {field} pd: дробное
+ {field} score: дробное
+ {field} risk_class: строка(1)
+ {field} pdn: дробное
+ {field} stop_factors: JSON
+ {field} factors: JSON
+ --
+ +последнийПоЗаявке(кредиты)
+}
+class ЖурналАудита <<entity>> {
+ {field} user_login: строка(64)
+ {field} action: строка(200)
+ {field} entity: строка(50)
+ {field} changes: JSON
+ --
+ +записать(просмотр карточки клиента)
+}
+class ЭкранПортфеля <<boundary>> {
+ +открытьКредитныйПортфель()
+}
+РеестрЗаёмщиков --> СервисПортфеля
+СервисПортфеля --> Клиент
+СервисПортфеля --> Заявка
+СервисПортфеля --> Кредит
+СервисПортфеля --> КредитныйОтчёт
+СервисПортфеля --> ЖурналАудита
+ЭкранПортфеля --> СервисПортфеля
+СервисПортфеля --> РезультатСкоринга
+Клиент "1" -- "0..*" Заявка
+Заявка "1" -- "0..1" КредитныйОтчёт
+Заявка "1" -- "0..*" РезультатСкоринга
+Заявка "1" -- "0..1" Кредит
+@enduml

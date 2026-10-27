@@ -1,0 +1,36 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+skinparam rectangle {
+ BorderColor black
+}
+rectangle ":КонтроллерЗаявок\n«control»" as C
+rectangle ":СервисДосье\n«control»" as DS
+rectangle ":АдаптерБКИ\n«control»" as BA
+rectangle ":БКИ" as BKI
+rectangle ":АдаптерАБС\n«control»" as AA
+rectangle ":АБС" as ABS
+rectangle ":СервисПроверок\n«control»" as V
+rectangle ":ЗаписьСтопЛиста\n«entity»" as SL
+rectangle ":Проверка\n«entity»" as VR
+rectangle ":КредитныйОтчёт\n«entity»" as CR
+rectangle ":ДанныеАБС\n«entity»" as AD
+rectangle ":ЗапросБКИ\n«entity»" as RQ
+rectangle ":Заявка\n«entity»" as AP
+C -- DS : "1: собрать(заявка) ↓\n13: [БКИ или АБС недоступны]\nзаявка ждёт данных («Сбор\nданных») ↑\n19: [данные получены] досье\nсформировано ↑"
+DS -- AP : "2: setСтатус(Сбор данных) ↓\n17: [данные получены]\nsetСтатус(Скоринг) ↓"
+DS -- BA : "3: [параллельно]\nзапроситьОтчёт(субъект,\nсогласие) ↓"
+BA -- BKI : "4: [параллельно] запрос\nкредитного отчёта ↓\n5: [параллельно] кредитный отчёт\nили «не найден» ↑"
+DS -- AA : "6: [параллельно]\nзапроситьДанные(субъект) ↓"
+AA -- ABS : "7: [параллельно] запрос сведений\nо клиенте ↓\n8: [параллельно] счета,\nзарплата, кредиты Банка ↑"
+DS -- V : "9: [параллельно]\nпроверить(субъект, стоп-лист) ↓"
+V -- SL : "10: [параллельно] выбратьВсе() ↓"
+DS -- VR : "11: сохранить(паспорт, стоп-\nлист, Росфинмониторинг) ↓"
+DS -- RQ : "12: [БКИ или АБС недоступны]\nувеличитьПопытки() [следующая\nчерез 5 мин] ↓\n16: [данные получены]\nsetСтатус(ok) ↓"
+DS -- CR : "14: [данные получены]\nсохранить(отчёт) ↓"
+DS -- AD : "15: [данные получены]\nсохранить(данные АБС) ↓"
+DS -- DS : "18: [данные получены]\nвыполнитьСкоринг(заявка)\n<<include>>"
+@enduml
