@@ -77,3 +77,32 @@ def psi(reference: list[float], current: list[float], bins: int = 10) -> float |
 
     e, a = shares(reference), shares(current)
     return round(sum((ai - ei) * math.log(ai / ei) for ai, ei in zip(a, e)), 4)
+
+
+def brier(pds: list[float], bad: list[bool]) -> float | None:
+    """Показатель Брайера: средний квадрат разности прогнозной PD и факта дефолта (0 — идеально)."""
+    if not pds:
+        return None
+    return sum((p - (1.0 if b else 0.0)) ** 2 for p, b in zip(pds, bad)) / len(pds)
+
+
+def calibration(pds: list[float], bad: list[bool], classes: list) -> list[dict]:
+    """Прогнозная PD против фактической доли дефолтов по классам риска. Расхождение отмечается, если факт
+    отличается от прогноза больше чем на две стандартные ошибки доли (и в классе не меньше 30 кредитов)."""
+    groups: dict[str, list] = {name: [0, 0.0, 0] for name, _ in classes}
+    for p, b in zip(pds, bad):
+        name = next((n for n, upper in classes if upper is None or p < upper), classes[-1][0])
+        g = groups[name]
+        g[0] += 1
+        g[1] += p
+        g[2] += 1 if b else 0
+    out = []
+    for name, (n, sum_pd, n_bad) in groups.items():
+        if not n:
+            out.append({"risk_class": name, "n": 0, "pd_mean": None, "default_rate": None, "deviates": False})
+            continue
+        pd_mean, rate = sum_pd / n, n_bad / n
+        se = math.sqrt(max(pd_mean * (1 - pd_mean), 1e-12) / n)
+        out.append({"risk_class": name, "n": n, "bad": n_bad, "pd_mean": round(pd_mean, 4),
+                    "default_rate": round(rate, 4), "deviates": n >= 30 and abs(rate - pd_mean) > 2 * se})
+    return out

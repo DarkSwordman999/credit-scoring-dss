@@ -120,6 +120,25 @@ def pd_from_score(params: dict, s: float) -> float:
     return 1 / (1 + odds)
 
 
+def fit_base_odds(params: dict, scores: list[float], target_rate: float) -> float | None:
+    """Базовые шансы, при которых средняя PD по выборке равна фактической доле дефолтов (перекалибровка:
+    баллы и PDO не меняются, поэтому порядок заёмщиков и ROC AUC остаются прежними)."""
+    if not scores or not 0 < target_rate < 1:
+        return None
+
+    def mean_pd(odds0: float) -> float:
+        return sum(1 / (1 + odds0 * 2 ** ((s - params["base_score"]) / params["pdo"])) for s in scores) / len(scores)
+
+    lo, hi = 1e-3, 1e6           # средняя PD убывает с ростом базовых шансов — делим отрезок пополам
+    for _ in range(100):
+        mid = math.sqrt(lo * hi)
+        if mean_pd(mid) > target_rate:
+            lo = mid
+        else:
+            hi = mid
+    return round(math.sqrt(lo * hi), 2)
+
+
 def explain(parts: list[dict], n: int = 5) -> list[dict]:
     """Пять факторов, сильнее всего повысивших оценку риска, и пять — сильнее всего понизивших (С-9)."""
     neg = sorted((p for p in parts if p["contribution"] < 0), key=lambda p: p["contribution"])[:n]

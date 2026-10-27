@@ -201,3 +201,37 @@ def test_psi_known_value_and_small_reference():
 def test_evaluate_summary():
     r = metrics.evaluate([0.1, 0.2, 0.8, 0.9], [False, False, True, True])
     assert r == {"n": 4, "bad": 2, "default_rate": 0.5, "auc": 1.0, "gini": 1.0, "ks": 1.0}
+
+
+# ---------------------------------------------------------------- калибровка
+def test_brier_score():
+    assert metrics.brier([], []) is None
+    assert metrics.brier([0.0, 1.0], [False, True]) == 0
+    assert metrics.brier([0.1, 0.9], [False, True]) == pytest.approx(0.01)
+    assert metrics.brier([0.5] * 4, [True, False, True, False]) == pytest.approx(0.25)
+
+
+def test_calibration_by_class():
+    pds = [0.01] * 100 + [0.15] * 50
+    bad = [False] * 99 + [True] + [True] * 20 + [False] * 30
+    cal = {c["risk_class"]: c for c in metrics.calibration(pds, bad, DEFAULT_CLASSES)}
+    assert cal["A"] == {"risk_class": "A", "n": 100, "bad": 1, "pd_mean": 0.01, "default_rate": 0.01, "deviates": False}
+    assert cal["D"]["default_rate"] == 0.4 and cal["D"]["deviates"] is True     # 40 % против 15 % прогноза
+    assert cal["B"]["n"] == 0 and cal["B"]["pd_mean"] is None
+
+
+def test_calibration_small_class_is_not_flagged():
+    cal = metrics.calibration([0.03] * 10, [True] * 5 + [False] * 5, DEFAULT_CLASSES)
+    b = [c for c in cal if c["risk_class"] == "B"][0]
+    assert b["default_rate"] == 0.5 and b["deviates"] is False                   # меньше 30 кредитов
+
+
+def test_fit_base_odds_matches_observed_rate_and_keeps_order():
+    p = scorecard.default_params()
+    scores = [520 + 4 * i for i in range(50)]
+    odds = scorecard.fit_base_odds(p, scores, 0.10)
+    q = dict(p, base_odds=odds)
+    pds = [scorecard.pd_from_score(q, s) for s in scores]
+    assert sum(pds) / len(pds) == pytest.approx(0.10, abs=1e-3)
+    assert all(a > b for a, b in zip(pds, pds[1:]))                 # порядок заёмщиков тот же
+    assert scorecard.fit_base_odds(p, scores, 0) is None and scorecard.fit_base_odds(p, [], 0.1) is None

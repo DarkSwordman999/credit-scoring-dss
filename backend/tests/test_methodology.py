@@ -34,7 +34,11 @@ def test_candidate_lifecycle(client, login, session):
     r = client.post(f"/api/models/{v2['id']}/validate", json={}, headers=login("analyst"))
     assert r.status_code == 200, r.text
     m = r.json()["metrics"]
-    assert {"auc", "gini", "ks", "n", "published"} <= set(m)
+    assert {"auc", "gini", "ks", "n", "published", "brier", "pd_mean", "calibration"} <= set(m)
+    cal = m["calibration"]
+    assert [c["risk_class"] for c in cal] == ["A", "B", "C", "D", "E"]
+    assert sum(c["n"] for c in cal) == m["n"] and sum(c.get("bad", 0) for c in cal) == m["bad"]
+    assert 0 <= m["brier"] <= 1
     if m["gini"] < m["published"]["gini"]:      # на малой истории кандидат может оказаться хуже — берём баллы v1
         assert client.post(f"/api/models/{v2['id']}/submit", headers=login("analyst")).status_code == 400
         v1 = client.get(f"/api/models/{ms[1]['id']}", headers=login("analyst")).json()

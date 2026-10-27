@@ -111,6 +111,12 @@ def validate(db: Session, user: User, m: ScoringModel, date_from: date | None, d
     cand_pd = _pds(m.params, feats)
     res = {"period": [date_from.isoformat() if date_from else None, date_to.isoformat() if date_to else None],
            "checked_at": datetime.now().isoformat(timespec="seconds"), **metrics.evaluate(cand_pd, bad)}
+    # калибровка: совпадает ли прогнозная PD с фактической долей дефолтов (AUC и Gini этого не показывают)
+    res["pd_mean"] = round(sum(cand_pd) / len(cand_pd), 4)
+    res["brier"] = round(metrics.brier(cand_pd, bad), 4)
+    res["calibration"] = metrics.calibration(cand_pd, bad, appsettings.get(db, "risk_classes"))
+    res["suggested_base_odds"] = scorecard.fit_base_odds(
+        m.params, [scorecard.score(m.params, f)[0] for f in feats], res["default_rate"] or 0)
     pub = published(db)
     if pub is not None and pub.id != m.id:
         res["published"] = {"version": pub.version, **metrics.evaluate(_pds(pub.params, feats), bad)}
