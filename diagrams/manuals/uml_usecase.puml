@@ -1,0 +1,29 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+left to right direction
+actor "Кредитный\nспециалист" as KS
+actor "Портал БКИ" as BKI <<система>>
+rectangle "СППР «Кредитный скоринг» (базовая редакция)" {
+  usecase "Войти в программу" as U0
+  usecase "Ввести и оценить заявку" as U1
+  usecase "Внести сведения\nиз кредитного отчёта" as U2
+  usecase "Просмотреть оценку\nи факторы" as U3
+  usecase "Принять решение" as U4
+  usecase "Просмотреть заявки" as U5
+  usecase "Сформировать отчёт" as U6
+  usecase "Вести кредитные продукты" as U7
+}
+KS --> U0
+KS --> U1
+KS --> U4
+KS --> U5
+KS --> U6
+KS --> U7
+U1 ..> U2 : <<include>>
+U1 ..> U3 : <<include>>
+U2 ..> BKI : отчёт получен\nна портале
+@enduml

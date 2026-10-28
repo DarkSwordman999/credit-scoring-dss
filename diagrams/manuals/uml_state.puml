@@ -1,0 +1,16 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+hide empty description
+state "На рассмотрении" as review
+state "Одобрена" as approved
+state "Отклонена" as rejected
+[*] --> review : заявка оценена
+review --> approved : одобрить\n[сумма в пределах продукта;\nкомментарий, если не по рекомендации]
+review --> rejected : отказать\n[комментарий, если не по рекомендации]
+approved --> [*]
+rejected --> [*]
+@enduml

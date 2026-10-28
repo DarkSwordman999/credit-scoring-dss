@@ -1,0 +1,70 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+left to right direction
+hide circle
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor white
+}
+entity "users\n(Пользователи)" as users {
+  * id : INTEGER <<PK>>
+  --
+  * login : TEXT <<U>>
+  * password_hash : TEXT
+}
+entity "products\n(Кредитные продукты)" as products {
+  * id : INTEGER <<PK>>
+  --
+  * name : TEXT <<U>>
+  * min_amount : REAL
+  * max_amount : REAL
+  * min_term : INTEGER
+  * max_term : INTEGER
+  * rate : REAL
+}
+entity "clients\n(Клиенты)" as clients {
+  * id : INTEGER <<PK>>
+  --
+  * last_name : TEXT
+  * first_name : TEXT
+  * middle_name : TEXT
+  * birth_date : TEXT
+  * passport : TEXT <<U>>
+  * phone : TEXT
+}
+entity "applications\n(Заявки)" as applications {
+  * id : INTEGER <<PK>>
+  --
+  * client_id : INTEGER <<FK>>
+  * product_id : INTEGER <<FK>>
+  * created_at : TEXT
+  * amount : REAL
+  * term : INTEGER
+  * income : REAL
+  * experience : INTEGER
+  * payments : REAL
+  * max_dpd : INTEGER
+  * current_dpd : INTEGER
+  * inquiries : INTEGER
+  * history_months : INTEGER
+    score : REAL
+    pd : REAL
+    risk_class : TEXT
+  * pdn : REAL
+    stop_factor : TEXT
+  * factors : TEXT
+  * recommendation : TEXT
+    rec_amount : REAL
+    rec_rate : REAL
+  * status : TEXT
+    approved_amount : REAL
+  * comment : TEXT
+    decided_at : TEXT
+}
+products ||--o{ applications
+clients ||--o{ applications
+@enduml

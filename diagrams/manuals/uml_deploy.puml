@@ -1,0 +1,16 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+node "Компьютер специалиста\n(Windows 10/11, Python 3.11+)" as pc {
+  artifact "Веб-браузер" as br
+  component "app.py\n(Flask, 127.0.0.1:5000)" as app
+  database "creditdss.db\n(SQLite)" as db
+  file "secret.key" as key
+}
+br --> app : HTTP
+app --> db : SQL
+app --> key
+@enduml

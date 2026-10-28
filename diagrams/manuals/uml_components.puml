@@ -1,0 +1,26 @@
+@startuml
+!pragma layout smetana
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam monochrome true
+package "app" {
+  component "run.bat, run.py\n(запуск, окружение,\nдемо-данные)" as c_run
+  component "app.py\n(страницы, проверки ввода)" as c_app
+  component "logic.py\n(стоп-факторы, ПДН, карта,\nPD, класс, рекомендация)" as c_logic
+  component "db.py\n(подключение к SQLite)" as c_dbm
+  component "templates, static\n(HTML-страницы, стили)" as c_tpl
+  component "demo.py\n(демо-данные)" as c_demo
+  component "schema.sql" as c_schema
+}
+database "creditdss.db" as c_db
+c_run --> c_app
+c_run --> c_demo
+c_app --> c_logic
+c_app --> c_dbm
+c_app --> c_tpl
+c_demo --> c_logic
+c_demo --> c_dbm
+c_dbm --> c_schema
+c_dbm --> c_db
+@enduml
