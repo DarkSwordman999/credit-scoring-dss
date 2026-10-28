@@ -20,3 +20,5 @@ release/
 app/creditdss.db
 app/wheels/
 app/secret.key
+tools/report_generator/.pngopt.json
+tools/report_generator/_out/
