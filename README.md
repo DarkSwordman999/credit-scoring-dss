@@ -113,7 +113,7 @@ diagrams/    диаграммы: IDEF0, IDEF3, VORD, ER, UML, сетевой г�
 tools/       генератор отчётов (python-docx + MS Word) — исходники текста и диаграмм
 ```
 
-Отчёты собираются генератором из `tools/report_generator` (`python build.py`). Ему нужны Windows, MS Word, Java 11+ и [`plantuml.jar`](https://github.com/plantuml/plantuml/releases), положенный рядом со скриптами. Данные титульного листа задаются в `config.py`.
+Отчёты собираются генератором из `tools/report_generator` (`python build.py`). Ему нужны Windows, MS Word, пакеты `latex2mathml` (формулы) и `pyoxipng` (сжатие картинок), Java 11+ и [`plantuml.jar`](https://github.com/plantuml/plantuml/releases), положенный рядом со скриптами. Данные титульного листа задаются в `config.py`.
 
 ## Лицензия
 
